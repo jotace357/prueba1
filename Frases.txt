@@ -23,23 +23,34 @@ Edicion 2020
 17.- Pero,... dejame tranquilo!! - Julio Gutierrez
 18.- Flanders está potente - Diego
 19.- Si a vos te gusta otro, le entramos a otro - José
+20.- Está bravo el icardismo en esta oficina - Diego
+21.- Tengo una vieja en mi cuarto - Diego
+22.- De a ratos me parecen más cómodas las chicas que las grandes  - Diego
+23.- Es como los semáforos rojo penal, verde libre - Norma
+24.- Corazón que no vé, corazón que no siente - Enrico
+25.- Tiene leche eso? - Luis
+26.- Se ríe el nuevo, ¿cuánto demoré yo para reirme? - Agustin
+27.- PHP sabemos todos! - Inés
+28.- Vos sabes ignorarme perfectamente, seguí ignorándome - Norma a Enrico
 
-Norma = 4
-Diego = 2
+Norma = 6
+Diego = 5
 Leo = 2
+Enrico = 2
+Inés = 2
 Cristian = 1
 Agustina = 1
 Manuel = 1
 Karlos = 1
 Juan = 1
-Inés = 1
-Enrico = 1
 Julio = 1
 Fabri = 1
 Jose = 1
 Julio Gutierrez = 1
+Luis = 1
+Agustín = 1
 ------------
-Total = 19
+Total = 28
 
 
 
