@@ -1,0 +1,4356 @@
+
+----------------------
+GSAFMAS
+----------------------
+-- con este query enderezamos todas las operacion_renglon que no se estabn generando en los RC
+-- insert into operacion_renglon
+select b.nro_operacion,b.categoria,sum(b.cantidad) as cantidad, b.moneda,min(b.valor), b.usuario
+from operacion_renglon_caravana b
+where b.nro_operacion in(select c.nro_operacion from operacion c where c.nro_operacion not in (select d.nro_operacion from operacion_renglon d)
+and tipo_operacion in ('rc'))
+--and fecha >'20200301')
+group by b.nro_operacion,b.categoria, b.moneda, b.usuario
+
+ -- con este query generamos todas las operacion_renglon que faltaban en las operaciones
+insert into operacion_renglon
+select b.nro_operacion,b.categoria,sum(b.cantidad) as cantidad, b.moneda,min(b.valor), b.usuario
+from operacion_renglon_caravana b
+where b.nro_operacion in(select c.nro_operacion from operacion c where c.nro_operacion not in (select d.nro_operacion from operacion_renglon d)
+and tipo_operacion not in ('rc','br','ar')
+and fecha >'20200301')
+group by b.nro_operacion,b.categoria, b.moneda, b.usuario
+
+---------------------------------------------------
+ELIMINAR OPERACION DE TRASLADO
+---------------------------------------------------
+
+----------46762
+select * from operacion where nro_operacion = 46762
+select * from operacion_renglon where nro_operacion = 46762
+select * from operacion_renglon_caravana where nro_operacion = 46762
+select * from caravana where id_fideicomiso = 3106 and codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 46762)
+
+update caravana set dicose_efidus = 'QQ0312712', dicose_ubicacion = '050733726'
+  where id_fideicomiso = 3106 and codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 46762)
+
+--delete from operacion where nro_operacion = 46762
+--delete from operacion_renglon where nro_operacion = 46762
+--delete from operacion_renglon_caravana where nro_operacion = 46762
+---------------------------------------------------
+
+
+QUERY FABRI PARA VER LOS FIDEICOMISOS CON VARIOS RC
+
+use gsafmas
+select b.* from (
+	select id_fideicomiso, count(*)
+ cant
+	from operacion
+	where tipo_operacion = 'rc' 
+	group by id_fideicomiso
+	having count(*)>1 
+)a , operacion b
+where a.ID_FIDEICOMISO = b.ID_FIDEICOMISO
+and  tipo_operacion = 'rc' 
+order by b.id_fideicomiso
+
+
+select * from operacion where nro_operacion not in (select nro_operacion from operacion_renglon)
+and tipo_operacion not in ('rc','br', 'ar')
+and fecha > '20200301'
+order by fecha
+
+
+
+------------------------------------------------
+reporte de sueldos con datos de los vales
+-----------------------------------------------
+
+
+select b.codigo_identificacion, 
+b.nro_identificacion,
+b.primer_nombre, 
+b.segundo_nombre,
+b.primer_apellido,
+b.segundo_apellido,
+b.sexo,
+b.estado_civil,
+b.fecha_nacimiento,
+b.lugar_nacimiento,
+b.calle,
+b.nro_puerta,
+b.sub_puerta,
+b.referencia_domicilio,
+b.telefono,
+b.otro_telefono,
+b.celular,
+b.email, 
+b.detalle_pais, 
+b.detalle_departamento,
+b.detalle_ciudad,
+b.detalle_barrio, 
+b.detalle_ocupacion,
+b.sueldo ,
+a.nro_solicitud,
+a.nro_vale,
+a.fecha_genera_vale,
+a.capital,
+a.cantidad_cuotas,
+round(a.saldo_cuota_vale,2) as saldo_vale
+ from v_planilla_vales a, v_consulta_persona b
+where a.nro_identificacion = b.nro_identificacion 
+and a.cod_identificacion = b.codigo_identificacion 
+and b.sueldo > 0
+and a.nro_cuota = 1
+
+
+
+------------------------------------------------
+eliminar operacion de ampliacion
+------------------------------------------------
+
+select * from operacion where id_fideicomiso = 3110 and guia = 'z219578'
+select * from operacion where nro_operacion = 43892
+select * from operacion_renglon where nro_operacion = 43892
+select * from operacion_renglon_caravana where nro_operacion = 43892
+select * from caravana where id_fideicomiso = 3110 and codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 43892)
+--delete from operacion where nro_operacion = 43892
+--delete from operacion_renglon where nro_operacion = 43892
+--delete from operacion_renglon_caravana where nro_operacion = 43892
+--delete from caravana where id_fideicomiso = 3110 and codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 43892)
+
+
+
+insert seguridad gasfmas MARIA JOSE
+
+
+select * from seg_objeto order by id_objeto
+insert into seg_objeto values(1,	1585	,'M',	'Reportes - Reporte Documentos Fideicomiso',	'm_menu_principal',	'Reportes - Reporte Documentos Fideicomiso')
+insert into seg_objeto values(1,	1590	,'M',	'Reportes - Reporte Documentos Consignatario/Frigorifico',	'm_menu_principal',	'Reportes - Reporte Documentos Consignatario/Frigorifico')
+insert into seg_objeto values(1,	1595	,'M',	'Reportes - Reporte Documentos Vencimiento',	'm_menu_principal',	'Reportes - Reporte Documentos Vencimiento')
+select * from seg_GRUPOS where grupo = 'ADMINISTRADOR'
+select * from seg_permisos where grupo = 'ADMIN'
+insert into seg_permisos values ('admin',1,1585)
+insert into seg_permisos values ('admin',1,1590)
+
+
+------------------------------------------------
+reporte de consigntatarios documentos
+------------------------------------------------
+
+SELECT c.id_fideicomiso,a.ID_DOCUMENTO, a.ID_PERSONA_EMISOR,PERSONA_EMISOR.NOMBRE as nombre_emisor, a.ID_PERSONA_RECEPTOR,PERSONA_RECEPTOR.NOMBRE as nombre_receptor, a.TIPO_DOCUMENTO, a.SERIE_DOCUMENTO, a.NRO_DOCUMENTO, a.FECHA_FACTURA,
+a.FECHA_VENCIMIENTO, a.MONEDA, a.MONTO_TOTAL, ISNULL(a.FECHA_COBRO, '') AS fecha_cobro, ISNULL(a.COBRADA, '') AS cobrada, a.USUARIO,
+ISNULL(a.COMENTARIOS, '') AS comentarios, ISNULL(a.NRO_TROPA, 0) AS nro_tropa, b.NRO_OPERACION, c.ID_FIDEICOMISO, c.NRO_PREEMBARQUE,
+c.TIPO_OPERACION, c.FECHA AS fecha_operacion, c.HORA AS hora_operacion, c.GUIA, c.FECHA_GUIA, c.DICOSE_A,
+ISNULL((select descripcion from dbo.tipo_operacion where (tipo_operacion = c.tipo_operacion)), '') AS descripcion_tipo,
+ISNULL
+((SELECT DENOMINACION
+FROM dbo.DICOSE
+WHERE (NRO_DICOSE = c.DICOSE_A)), '') AS denominacion_dicose_a, c.DICOSE_B, ISNULL
+((SELECT DENOMINACION
+FROM dbo.DICOSE AS DICOSE_3
+WHERE (NRO_DICOSE = c.DICOSE_B)), '') AS denominacion_dicose_b, c.DICOSE_C, ISNULL
+((SELECT DENOMINACION
+FROM dbo.DICOSE AS DICOSE_2
+WHERE (NRO_DICOSE = c.DICOSE_C)), '') AS denominacion_dicose_c, c.DICOSE_D, ISNULL
+((SELECT DENOMINACION
+FROM dbo.DICOSE AS DICOSE_1
+WHERE (NRO_DICOSE = c.DICOSE_D)), '') AS denominacion_dicose_d, c.OBSERVACION, d.ID_PERSONA, d.FECHA_INICIO, d.TASA,
+d.PORC_LINEA, ISNULL(d.VIGENCIA, '') AS vigencia_fideicomiso, d.SUCURSAL, d.SEGURO,
+(SELECT SUM(CANTIDAD) AS Expr1
+FROM dbo.OPERACION_RENGLON
+WHERE (NRO_OPERACION = b.NRO_OPERACION)) AS cant_total
+FROM dbo.DOCUMENTO AS a INNER JOIN
+dbo.DOCUMENTO_OPERACION AS b ON a.ID_DOCUMENTO = b.ID_DOCUMENTO INNER JOIN
+dbo.OPERACION AS c ON b.NRO_OPERACION = c.NRO_OPERACION INNER JOIN
+dbo.FIDEICOMISO AS d ON c.ID_FIDEICOMISO = d.ID_FIDEICOMISO
+inner join v_personas AS PERSONA_RECEPTOR
+on a.ID_PERSONA_RECEPTOR = PERSONA_RECEPTOR.ID_PERSONA
+inner join v_personas AS PERSONA_EMISOR
+on a.ID_PERSONA_EMISOR = PERSONA_EMISOR.ID_PERSONA and a.id_persona_emisor = 1189
+GROUP BY a.ID_DOCUMENTO, a.ID_PERSONA_EMISOR, a.ID_PERSONA_RECEPTOR, a.TIPO_DOCUMENTO, a.SERIE_DOCUMENTO, a.NRO_DOCUMENTO, a.FECHA_FACTURA,
+a.FECHA_VENCIMIENTO, a.MONEDA, a.MONTO_TOTAL, a.FECHA_COBRO, a.COBRADA, a.USUARIO, a.COMENTARIOS, a.NRO_TROPA, b.NRO_OPERACION,
+c.ID_FIDEICOMISO, c.NRO_PREEMBARQUE, c.TIPO_OPERACION, c.FECHA, c.HORA, c.GUIA, c.FECHA_GUIA, c.DICOSE_A, c.DICOSE_B, c.DICOSE_C, c.DICOSE_D,
+c.OBSERVACION, d.ID_FIDEICOMISO, d.ID_PERSONA, d.FECHA_INICIO, d.TASA, d.PORC_LINEA, d.VIGENCIA, d.SUCURSAL, d.SEGURO, PERSONA_RECEPTOR.nombre, PERSONA_EMISOR.nombre
+
+
+------------------------------------------------
+toda la vista de documentos
+------------------------------------------------
+
+SELECT TOP 1000 ID_DOCUMENTO
+      ,ID_PERSONA_EMISOR
+      ,ID_PERSONA_RECEPTOR
+      ,TIPO_DOCUMENTO
+      ,SERIE_DOCUMENTO
+      ,NRO_DOCUMENTO
+      ,FECHA_FACTURA
+      ,FECHA_VENCIMIENTO
+      ,MONEDA
+      ,MONTO_TOTAL
+      ,fecha_cobro
+      ,cobrada
+      ,USUARIO
+      ,comentarios
+      ,nro_tropa
+      ,NRO_OPERACION
+      ,ID_FIDEICOMISO
+      ,NRO_PREEMBARQUE
+      ,TIPO_OPERACION
+      ,fecha_operacion
+      ,hora_operacion
+      ,GUIA
+      ,FECHA_GUIA
+      ,DICOSE_A
+      ,descripcion_tipo
+      ,denominacion_dicose_a
+      ,DICOSE_B
+      ,denominacion_dicose_b
+      ,DICOSE_C
+      ,denominacion_dicose_c
+      ,DICOSE_D
+      ,denominacion_dicose_d
+      ,OBSERVACION
+      ,Expr1
+      ,ID_PERSONA
+      ,FECHA_INICIO
+      ,TASA
+      ,PORC_LINEA
+      ,Expr2
+      ,SUCURSAL
+      ,SEGURO
+      ,cant_total
+  FROM v_doc_op_fide
+
+------------------------------------------------
+GSAFMAS REPORTE MARIA JOSE 13/03/2020
+------------------------------------------------
+use gsafmas
+ Necesito datos de todas las guías emitidas por GTM desde 01/01/2020.
+Los datos que necesito son:
+Fideicomiso - Fecha guía - Nº Guía - Tipo Operacion - Dicose A - Dicose B - Dicose C - Dicose D - Cantidad total de ganado
+
+select sum(cantidad) from operacion_renglon where nro_operacion = 8
+select * from operacion_renglon where nro_operacion = 8
+select top 3 * from operacion
+
+select a.id_fideicomiso, a.nro_operacion, a.tipo_operacion, a.guia, fecha_guia, dicose_a, dicose_b, dicose_c, dicose_d, sum(b.cantidad) as cant_total 
+from operacion a, operacion_renglon b, guia_compra c
+ where a.nro_operacion = b.nro_operacion
+ and a.guia = c.guia
+and a.fecha_guia >='20200101'
+group by a.nro_operacion ,a.id_fideicomiso, a.tipo_operacion, a.guia, a.fecha_guia, dicose_a, dicose_b, dicose_c, dicose_d
+
+
+
+----------------------------------------------------------------------------------
+select 0 as 'check',
+		s.nro_solicitud, 
+		i.cod_id,
+		i.nro_identificacion,
+		p.ape1,
+		p.ape2,
+		p.nom1,
+		p.nom2,
+		v.fecha_saldo_vale as fecha_ultimo_pago,
+		( select isnull(max(datediff(day,convert(datetime,c.fecha_vencimiento),getdate())),0)
+					from cuotas c,rubros_cuotas r
+					where c.nro_solicitud = r.nro_solicitud
+					and c.nro_cuota = r.nro_cuota
+					and r.rubro = 500
+					and r.saldo_rubro_cuota > 0.1
+					and c.nro_solicitud = s.nro_solicitud ) as dias_atraso_vale		,
+		(select c.nro_cuota 
+		from cuotas c
+		where c.nro_solicitud = s.nro_solicitud  and 
+		c.fecha_vencimiento = (select isnull(min(Xc.fecha_vencimiento),0)
+								from cuotas xc
+								where xc.saldo_cuota_vale > 0.1
+								and xc.nro_solicitud = c.nro_solicitud )) as nro_cuota_mas_atrasada
+from solicitudes s
+inner join identificaciones i on i.id_persona = s.id_persona
+inner join personas p on p.id_persona = s.id_persona
+inner join vales v on v.nro_solicitud = s.nro_solicitud
+where v.saldo_vale > 0.1 and s.seccion = 'DSMBLSDO' 
+and s.nro_solicitud not in (select vgs.nro_solicitud from vgc_generico vgs)
+and s.nro_solicitud = 6468
+order by s.nro_solicitud
+
+
+------------------------------------------------
+MAINAUGROUP AUTORIZACIONES EN DESEMBOLSO
+------------------------------------------------
+
+select a.nro_solicitud,c.nro_vale, c.capital,c.cuotas, a.fecha_solicitud, b.fecha_autorizacion,
+b.fecha_desembolso, b.desembolso_realizado, c.cod_identificacion, c.nro_identificacion, c.primer_nombre, c.primer_apellido
+from solicitudes a, autorizacion_desembolso b, v_vales_persona c
+where a.nro_solicitud = b.nro_solicitud
+and a.nro_solicitud = c.nro_solicitud
+and a.fecha_solicitud >= '20200101'
+and a.fecha_solicitud <= '20200124'
+order by a.fecha_solicitud, a.nro_solicitud
+
+
+------------------------------------------------------------------
+MAINAUGROUP transacciones debito por mes
+------------------------------------------------------------------
+
+select a.transaccion,a.fecha,b.cod_identificacion,b.nro_identificacion,b.nro_solicitud,b.nro_cuota,b.monto as monto_transaccion, c.rubro,c.sub_Rubro,c.monto 
+from transacciones a, transacciones_debito b, transacciones_debito_por_rubro c
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and a.fecha >= '20200201'
+and a.fecha <= '20200229'
+and a.anulada_sn ='N'
+order by a.fecha,a.transaccion
+
+o sino
+
+select * from transacciones a, transacciones_debito b, transacciones_debito_por_rubro c
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and a.fecha >= '20191101'
+and a.fecha <= '20191130'
+and a.anulada_sn ='N'
+order by a.fecha,a.transaccion
+
+
+------------------------------------------------------------------
+MAINAUGROUP RUBROS CUOTAS DEL MES
+------------------------------------------------------------------
+
+select * from  HIS_RUBROS_CUOTAS_CIERRE_MES where fecha_valor = '20200331'
+
+------------------------------------------------------------------
+MAINAUGROUP NOTAS DE CREDITO DEL MES
+------------------------------------------------------------------
+
+use mainaugroup
+select a.transaccion,a.fecha,a.hora,b.cod_identificacion, b.nro_identificacion,b.nro_solicitud,b.monto as monto_transaccion,c.nro_cuota,c.rubro,c.sub_rubro,c.monto,d.usuario
+from transacciones a, transacciones_cobranza b, transacciones_cobranza_asignacion c, transacciones_usuarios d
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and a.transaccion = d.transaccion
+and a.fecha >= '20200101'
+and a.fecha <= '20200131'
+and a.cod_transaccion = '15'
+and a.anulada_sn = 'N'
+order by a.fecha, a.hora 
+
+
+------------------------------------------------------------------
+MAINAUGROUP consulta de personas con datos de vales observaciones
+------------------------------------------------------------------
+
+select vcp.id_persona,
+	vcp.codigo_identificacion,
+    vcp.nro_identificacion,
+    vcp.primer_nombre,
+    vcp.primer_apellido,
+    vcp.sexo,
+    vcp.fecha_nacimiento,
+    vcp.telefono,
+    vcp.otro_telefono,
+    vcp.celular,
+    vcp.calle,
+    vcp.nro_puerta,
+    vcp.sub_puerta,
+    vcp.email,
+    vcp.detalle_departamento,
+    vcp.detalle_ciudad,
+    vcp.detalle_barrio,
+    vcp.detalle_ocupacion,
+    vo.fecha as fecha_observacion,
+    vo.hora as hora_observacion,
+    vo.observacion,
+    vo.usuario
+from solicitudes as s right join vales_observaciones as vo on s.nro_solicitud = vo.nro_solicitud ,dbo.V_CONSULTA_PERSONA as vcp
+where vcp.id_persona = s.id_persona
+order by primer_nombre, primer_apellido
+
+
+-----------------------------------------------------------------
+
+prestacel conciliacion desembolso
+
+ SELECT v.cod_identificacion,
+ 			v.nro_identificacion,		
+ 			v.nro_solicitud,
+ 			v.nro_vale,
+ 			cd.nro_autorizacion,
+ 			ad.monto_desembolsado,
+ 			cd.fecha_desembolso,
+ 			v.capital
+ --from dbo.V_CONSULTA_PERSONA  as a left  join v_mymanalytics_General as b on a.id_persona = b.id_persona
+ FROM autorizacion_Desembolso as cd left join conciliacion_desembolsos as ad on ad.nro_solicitud = cd.nro_solicitud, vales v
+ WHERE --cd.nro_solicitud =ad.nro_solicitud AND
+ 	  cd.desembolso_realizado = 'S'
+ 	AND cd.nro_solicitud = v.nro_solicitud
+ 	and cd.fecha_desembolso >= '20191224'
+ AND cd.fecha_desembolso <= '20191224'
+ ORDER BY cd.fecha_desembolso, cd.nro_solicitud
+
+
+
+------------------------------------------------------------------
+MAINAUGROUP consulta de personas con datos de mymanalytics
+------------------------------------------------------------------
+select a.id_persona,
+	a.codigo_identificacion,
+    a.nro_identificacion,
+    a.primer_nombre,
+    a.primer_apellido,
+    a.sexo,
+    a.fecha_nacimiento,
+    a.telefono,
+    a.otro_telefono,
+    a.celular,
+    a.calle,
+    a.nro_puerta,
+    a.sub_puerta,
+    a.email,
+    a.detalle_departamento,
+    a.detalle_ciudad,
+    a.detalle_barrio,
+    a.detalle_ocupacion,
+    a.entradas_clearing,
+    isnull(b.score,'') as score,
+    isnull(b.peorcalificacion_2,'') as peorcalificacion_2
+from dbo.V_CONSULTA_PERSONA  as a left  join v_mymanalytics_General as b on a.id_persona = b.id_persona
+ --where a.id_persona = 2559
+order by primer_nombre, primer_apellido
+
+----------------------------------------------
+insert en menu seguridad
+use seguridad_mainaugroup
+select * from menu_nivel2 where aplicacion = 'informes_desktop' and desc1 = 'Registros' order by nivel2
+insert into menu_nivel2 values('informes_desktop','wprincipal_informes_desktop','menu_informes','Registros','Cancelaciones Anticipadas',4,6)
+insert into menu_nivel2_grupos values('informes_desktop','wprincipal_informes_desktop','menu_informes','Registros','Cancelaciones Anticipadas','ADMINISTRADOR')
+
+--------------------------------------------------------------------------
+stored
+
+
+create  procedure [dbo].[sp_HIS_RUBROS_CUOTAS_CIERRE_MES]  as
+declare @fecha_valor char(8)
+declare @filename char(32)
+
+set @fecha_valor = (select convert(char(8),getdate(),112)) 
+
+delete temp_HIS_RUBROS_CUOTAS_CIERRE_MES
+
+insert into HIS_RUBROS_CUOTAS_CIERRE_MES
+select 
+	@fecha_valor,
+	v.nro_vale,
+	v.fecha_genera_vale,
+	v.cod_identificacion,
+	v.nro_identificacion,
+	rc.nro_solicitud ,
+	rc.nro_cuota,
+	rc.rubro,
+	r.den_rubro,
+	rc.valor_rubro,
+	rc.saldo_rubro_cuota,
+	c.fecha_vencimiento,
+	dbo.dias_atraso(c.fecha_vencimiento,@fecha_valor) as total_dias_atraso
+from rubros_cuotas rc, vales v , cuotas c, rubros r
+where rc.nro_solicitud = v.nro_solicitud
+	and rc.nro_solicitud = c.nro_solicitud
+	and rc.nro_cuota = c.nro_cuota
+	and rc.rubro = r.rubro
+	and v.saldo_vale > 0.5
+	and rc.saldo_rubro_cuota > 0.5
+	and c.fecha_vencimiento <= @fecha_valor
+
+commit tran proceso
+
+set @filename = 'C:\temp\EnLaMano_Rubros_Cuota_Cierre_Mes_'+@fecha_valor+'.xls'
+
+
+insert into temp_HIS_RUBROS_CUOTAS_CIERRE_MES
+select * from HIS_Rubros_Cuota_Cierre_Mes(@fecha_valor)
+
+exec generate_excel_with_columns temp_HIS_RUBROS_CUOTAS_CIERRE_MES, @filename
+
+-----------------
+ULTIMO QUE LE MANDAMOS A RUBEN GENERA 4 TESTING
+
+
+use mainaugroup
+--select * from rubros_cuotas where nro_solicitud = 2002
+
+select v.nro_solicitud,
+v.nro_vale,
+    v.cod_identificacion,
+    v.nro_identificacion,
+    r.nro_cuota,
+    v.fecha_genera_vale,
+    a.transaccion,
+    c.fecha as fecha_devengamiento,
+    b.rubro,
+    u.den_rubro,
+    b.monto as monto_rubro,
+    case when f.saldo_cuota_vale > 0.5 then (select dbo.dias_atraso(f.fecha_vencimiento,'20190930')) else 0 end as dia_atraso,
+ --   (select dbo.fx_max_dias_atraso_a_hoy(v.nro_solicitud)) as maximo_dia_atraso,
+    (select round(saldo_rubro_cuota,2) from rubros_cuotas xx where xx.nro_Solicitud = v.nro_solicitud and xx.nro_cuota = r.nro_cuota and rubro = '500') as saldo_Capital
+from transacciones_debito a , transacciones_Debito_por_rubro b, transacciones c, rubros_cuotas r, vales v, rubros u, cuotas f
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and b.nro_cuota = r.nro_cuota
+and a.nro_solicitud = r.nro_solicitud
+and a.nro_cuota = f.nro_cuota
+and a.nro_solicitud = f.nro_solicitud
+and b.rubro = r.rubro
+and a.nro_solicitud = v.nro_solicitud
+and r.rubro = u.rubro
+--and a.nro_solicitud = 24297
+--and r.saldo_rubro_cuota > 0.5
+--and dbo.Dias_Atraso_Vale(v.nro_solicitud,'20190930') >= 120
+--and v.fecha_Genera_vale <'20191001'
+--order by a.nro_solicitud --v.nro_solicitud, f.nro_cuota
+
+union all
+
+select a.nro_solicitud,
+    v.nro_vale,
+    a.cod_identificacion,
+    a.nro_identificacion,
+    a.nro_cuota,
+    v.fecha_genera_vale,
+    a.transaccion,
+    '' ,
+    b.rubro,
+    u.den_rubro,
+    b.monto as monto_rubro,
+    '' as dia_atraso,
+    --(select dbo.fx_max_dias_atraso_a_hoy(v.nro_solicitud)) as maximo_dia_atraso,
+    '' --(select round(saldo_rubro_cuota,2) from rubros_cuotas xx where xx.nro_Solicitud = v.nro_solicitud and xx.nro_cuota = r.nro_cuota and rubro = '500') as saldo_Capital
+from transacciones_debito a , transacciones_Debito_por_rubro b, transacciones c,  rubros u , vales v
+where a.transaccion = b.transaccion
+and a.nro_solicitud = v.nro_solicitud
+and a.transaccion = c.transaccion
+and b.rubro = u.rubro
+and b.nro_cuota = 0
+--order by nro_solicitud
+--and v.fecha_Genera_vale < '20191001'
+
+
+
+------------------------- ENLAMANO_VALES_RUBROS_DEVENGAMIENTO_120_DIAS_ATRASO TESTING
+
+use mainaugroup
+select v.nro_solicitud,
+v.nro_vale,
+	v.cod_identificacion,
+	v.nro_identificacion,
+	r.nro_cuota,
+	v.fecha_genera_vale,
+	a.transaccion,
+	c.fecha as fecha_devengamiento,
+	b.rubro,
+	u.den_rubro,
+	b.monto as monto_rubro,
+	(select dbo.Dias_Atraso_Vale(v.nro_solicitud,'20190930')) as dias_atraso
+from transacciones_debito a , transacciones_Debito_por_rubro b, transacciones c, rubros_cuotas r, vales v, rubros u
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and b.nro_cuota = r.nro_cuota
+and a.nro_solicitud = r.nro_solicitud
+and b.rubro = r.rubro
+and a.nro_solicitud = v.nro_solicitud
+and r.rubro = u.rubro
+--and a.nro_solicitud = 1
+--and b.rubro = '600'
+--and b.rubro <> '700'
+and r.saldo_rubro_cuota > 0.5
+and dbo.Dias_Atraso_Vale(v.nro_solicitud,'20190930') > 120
+and v.fecha_Genera_vale <'20191001'
+order by v.nro_vale
+
+------------ MAINAUGROUP FUTURO REPORTE CONSULTA CALIFICACIONES MYMANALYTICS POR RANGO DE FECHAS
+
+
+SELECT a.id_persona,
+b.codigo_identificacion,
+b.nro_identificacion,
+b.primer_nombre,
+b.segundo_nombre,
+b.primer_nombre,
+b.segundo_nombre
+fecha_consulta,
+score,
+peorcalificacion_2,
+peorcalificacion_6,
+peorCalifBancaPrivada_2,
+peorCalifBancaPrivada_6,
+peorCalifBrou_2,
+peorCalifBrou_6,
+peorCalifOca_2,
+peorCalifOca_6,
+peorCalifBhu_2,
+peorCalifBhu_6,
+peorCalifFnbs_2,
+peorCalifFnbs_6,
+peorCalifCooperativa_2,
+peorCalifCooperativa_6,
+montoContingencias_2,
+montoContingencias_6,
+montoContingenciasOca_2,
+montoContingenciasOca_6,
+montoContingenciasBancaPrivada_2,
+montoContingenciasBancaPrivada_6,
+montoContingenciasBrou_2,
+montoContingenciasBrou_6,
+montoContingenciasBhu_2,
+montoContingenciasBhu_6,
+montoContingenciasFnbs_2,
+montoContingenciasFnbs_6,
+montoContingenciasCooperativa_2,
+montoContingenciasCooperativa_6,
+montoVigente_2,
+montoVigente_6,
+montoVigenteOca_2,
+montoVigenteOca_6,
+montoVigenteBancaPrivada_2,
+montoVigenteBancaPrivada_6,
+montoVigenteBrou_2,
+montoVigenteBrou_6,
+montoVigenteBhu_2,
+montoVigenteBhu_6,
+montoVigenteFnbs_2,
+montoVigenteFnbs_6,
+montoVigenteCooperativa_2,
+montoVigenteCooperativa_6
+FROM v_mymanalytics_General a,v_consulta_persona b
+where a.id_persona = b.id_persona
+and fecha_consulta >='20190801'
+and fecha_consulta <='20190831'
+--------------  MAINAUGROUP CUANDO SE CORRE EL SP_DEVENGAMIENTO_CUOTAS Y DESPUES TE DAS CUENTA QUE DEVENGO PARA LA FECHA DE HOY
+
+select * from cuotas where nro_solicitud = 1
+select * from transacciones where cod_transaccion = '11' and fecha = '20190919'
+
+--update a set a.fecha = c.fecha_vencimiento
+--from transacciones a, transacciones_Debito b , cuotas c
+-- where a.transaccion = b.transaccion
+-- and b.nro_cuota = c.nro_cuota
+-- and b.nro_solicitud = c.nro_solicitud
+-- and cod_transaccion = '11' and fecha = '20190919'
+-- and c.fecha_vencimiento >= '20190801' 
+--and c.fecha_vencimiento <= '20190831'
+
+--update a set a.fecha_devengada = c.fecha_vencimiento
+--from cuotas_devengadas a, cuotas c
+-- where a.nro_solicitud = c.nro_solicitud
+-- and a.nro_cuota = c.nro_cuota
+-- and a.fecha_devengada = '20190919'
+-- and c.fecha_vencimiento >= '20190801' 
+--and c.fecha_vencimiento <= '20190831'
+
+------------------------------------------------------------
+para test mainaugroup
+
+
+
+use mainaugroup
+select v.nro_solicitud,
+v.nro_vale,
+	v.cod_identificacion,
+	v.nro_identificacion,
+	r.nro_cuota,
+	v.fecha_genera_vale,
+	a.transaccion,
+	c.fecha as fecha_devengamiento,
+	b.rubro,
+	u.den_rubro,
+	b.monto as monto_rubro,
+	(select dbo.Dias_Atraso(cc.fecha_vencimiento, '20190831')) as dias_atraso 
+from transacciones_debito a , transacciones_Debito_por_rubro b, transacciones c, rubros_cuotas r, vales v, rubros u, cuotas cc
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and b.nro_cuota = r.nro_cuota
+and a.nro_solicitud = r.nro_solicitud
+and r.nro_cuota = cc.nro_cuota
+and b.rubro = r.rubro
+and a.nro_solicitud = v.nro_solicitud
+and r.rubro = u.rubro
+and a.nro_solicitud = cc.nro_solicitud
+--and a.nro_solicitud = 1
+--and b.rubro = '600'
+--and b.rubro <> '700'
+and r.saldo_rubro_cuota > 0.5
+--and dbo.Dias_Atraso_Vale(v.nro_solicitud,'20190831') > 120
+and dbo.Dias_Atraso(cc.fecha_vencimiento, '20190831')  > 120
+and c.fecha <= '20190831'
+order by v.nro_vale
+
+-----------------
+-----------------
+
+USE [MainauGroup]
+GO
+
+/****** Object:  View [dbo].[v_mymanalytics_general]    Script Date: 08/21/2019 15:11:23 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+ALTER  view [dbo].[v_mymanalytics_general] as
+select ID_PERSONA, 
+	FECHA_CONSULTA,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:score)[1]', 'varchar(max)') AS score,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorcalificacion)[1]', 'varchar(max)') AS peorcalificacion_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorcalificacion_6)[1]', 'varchar(max)') AS peorcalificacion_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifBancaPrivada_2)[1]', 'varchar(max)') AS peorCalifBancaPrivada_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifBancaPrivada_6)[1]', 'varchar(max)') AS peorCalifBancaPrivada_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifBrou_2)[1]', 'varchar(max)') AS peorCalifBrou_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifBrou_6)[1]', 'varchar(max)') AS peorCalifBrou_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifOca_2)[1]', 'varchar(max)') AS peorCalifOca_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifOca_6)[1]', 'varchar(max)') AS peorCalifOca_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifBhu_2)[1]', 'varchar(max)') AS peorCalifBhu_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifBhu_6)[1]', 'varchar(max)') AS peorCalifBhu_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifFnbs_2)[1]', 'varchar(max)') AS peorCalifFnbs_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifFnbs_6)[1]', 'varchar(max)') AS peorCalifFnbs_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifCooperativa_2)[1]', 'varchar(max)') AS peorCalifCooperativa_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:peorCalifCooperativa_6)[1]', 'varchar(max)') AS peorCalifCooperativa_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingencias_2)[1]', 'varchar(max)') AS montoContingencias_2 ,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingencias_6)[1]', 'varchar(max)') AS montoContingencias_6 ,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasOca_2)[1]', 'varchar(max)') AS  montoContingenciasOca_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasOca_6)[1]', 'varchar(max)') AS montoContingenciasOca_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasBancaPrivada_2)[1]', 'varchar(max)') AS montoContingenciasBancaPrivada_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasBancaPrivada_6)[1]', 'varchar(max)') AS montoContingenciasBancaPrivada_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasBrou_2)[1]', 'varchar(max)') AS montoContingenciasBrou_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasBrou_6)[1]', 'varchar(max)') AS montoContingenciasBrou_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasBhu_2)[1]', 'varchar(max)') AS montoContingenciasBhu_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasBhu_6)[1]', 'varchar(max)') AS montoContingenciasBhu_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasFnbs_2)[1]', 'varchar(max)') AS montoContingenciasFnbs_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasFnbs_6)[1]', 'varchar(max)') AS montoContingenciasFnbs_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasCooperativa_2)[1]', 'varchar(max)') AS montoContingenciasCooperativa_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoContingenciasCooperativa_6)[1]', 'varchar(max)') AS montoContingenciasCooperativa_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigente_2)[1]', 'varchar(max)') AS montoVigente_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigente_6)[1]', 'varchar(max)') AS montoVigente_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteOca_2)[1]', 'varchar(max)') AS montoVigenteOca_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteOca_6)[1]', 'varchar(max)') AS montoVigenteOca_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteBancaPrivada_2)[1]', 'varchar(max)') AS montoVigenteBancaPrivada_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteBancaPrivada_6)[1]', 'varchar(max)') AS montoVigenteBancaPrivada_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteBrou_2)[1]', 'varchar(max)') AS montoVigenteBrou_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteBrou_6)[1]', 'varchar(max)') AS montoVigenteBrou_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteBhu_2)[1]', 'varchar(max)') AS montoVigenteBhu_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteBhu_6)[1]', 'varchar(max)') AS montoVigenteBhu_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteFnbs_2)[1]', 'varchar(max)') AS montoVigenteFnbs_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteFnbs_6)[1]', 'varchar(max)') AS montoVigenteFnbs_6,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteCooperativa_2)[1]', 'varchar(max)') AS montoVigenteCooperativa_2,
+	VALOR.value('(/*:Envelope/*:Body/*:consultaMyMAnalyticsResponse/*:return/*:montoVigenteCooperativa_6)[1]', 'varchar(max)') AS montoVigenteCooperativa_6
+FROM dbo.PERSONAS_CONSULTAS 
+
+GO
+
+
+
+
+
+USE [MainauGroup]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_consulto_MyMAnalytics]    Script Date: 08/21/2019 09:42:31 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+
+ALTER  procedure [dbo].[sp_consulto_MyMAnalytics]  
+						@noDoc varchar(8)				
+as
+
+declare @digito varchar(1)
+declare @identificacion varchar(8)
+declare @url varchar(2000)
+declare @metodo varchar(250)
+declare @xmlOut varchar(8000)
+Declare @RequestText as varchar(8000)
+declare @fecha char(8)
+declare @hora char(6)
+declare @idpersona numeric 
+
+set @digito = dbo.Check_digit(@noDoc)
+set @identificacion = @noDoc + @digito
+--begin tran proceso1
+--insert into log1 values('inicio con documento: '+@noDoc	)
+--insert into log1 values('digito: '+@digito)
+--insert into log1 values('identificacion: '+@identificacion)	
+--commit tran proceso1
+
+begin	
+	
+	set @url		= 'http://172.22.20.206:9090/WSGAvance/Avance?wsdl'
+	set @metodo		= 'consultaMyMAnalyticsXML'
+	
+	set @RequestText = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsg="http://WSGAvance/">
+			   <soapenv:Header/>
+			   <soapenv:Body>
+				  <wsg:consultaMyMAnalyticsXML>
+					 <tipoDocumento>IDE</tipoDocumento>
+					 <numeroDocumento>' + @identificacion + '</numeroDocumento>
+				  </wsg:consultaMyMAnalyticsXML>
+			   </soapenv:Body>
+			</soapenv:Envelope>'
+
+	
+	exec spHTTPRequest @url, 
+						'POST', 
+						@RequestText,
+						@metodo,
+						'', 
+						'', 
+						@xmlOut out
+					
+					
+	select @xmlOut 
+	--insert into log1 values('Respuesta:'+@xmlOut)	
+
+	select @idpersona = id_persona from identificaciones where nro_identificacion = @noDoc
+	
+	--insert into log1 values('idpersona: '+@idpersona)	
+	
+	-- inserto log 
+	begin tran proceso
+		set @fecha = (convert(char(8),getdate(),112))
+		set @hora = replace(convert(varchar, getdate(),108),':','')
+		--insert into log1 values('fecha: ' +@fecha + ' hora: '+@hora)
+		insert into PERSONAS_CONSULTAS values (@idpersona, 1 , @fecha, @xmlOut, 'XML')
+	
+	commit tran proceso
+		
+end
+
+---------------------------------------------------------------------------------------------------
+
+queries para analizar bloqueos
+
+select spid,kpid,blocked,cpu, [status],hostname, cmd, net_address 
+from sys.sysprocesses where dbid = (select database_id from sys.databases where name = 'Prestacel')
+AND blocked>0 
+order by hostname
+
+
+select
+top 1
+nt_username,
+nt_domain,
+sid,
+net_transport,
+net_library,
+client_net_address,
+connect_time, 
+hostname,
+program_name
+from master.sys.dm_exec_connections ec
+inner join master.dbo.sysprocesses sp 
+on sp.spid = ec.session_id
+where sp.spid =121
+
+
+--------------------------------------------
+
+
+subir archivos a la web para no usar el ftp
+en la 207 /var/www/gsoft
+
+--------------------------------------------------
+
+
+INFORME UTM 
+
+use mainaugroup
+select c.cod_id,
+	c.nro_identificacion,
+	d.nom1,
+	d.ape1,
+	a.nro_solicitud, 
+	a.fecha_solicitud,
+	a.monto, 
+	a.cant_cuotas,
+	a.nuevo_renova,
+	case a.estado when 'R' then 'Rechazado' when 'X' then 'Rechazado' when 'A' then 'Aprobado' when 'Z' then 'Sin Resolución' end as estado,
+	a.observaciones,
+	a.seccion,
+	a.solicitud_cancela, 
+	a.monto_solicitud_cancela, 
+	a.usuario,
+	a.motivo_rechazo,
+	a.categoria_bcu,
+	case b.utm_campaing when 'undefined' then '' else b.utm_campaing end as utm_campaing,
+	case b.utm_source when 'undefined' then '' else b.utm_source end as utm_source ,
+	case b.utm_term when 'undefined' then '' else b.utm_term end as utm_term,  
+	case b.utm_medium when 'undefined' then '' else b.utm_medium end as utm_medium, 
+	case b.utm_content when 'undefined' then '' else b.utm_content end as utm_content
+ from solicitudes a, solicitudes_utm b, identificaciones c, personas d
+ where a.nro_solicitud = b.nro_solicitud
+ and a.id_persona = c.id_persona
+ and a.id_persona = d.id_persona
+ and fecha_solicitud >='20190722'
+
+
+---para saber las filas repetidas
+
+select nro_solicitud, id_empresa, count(*) from vgc_generico group by nro_solicitud, id_empresa having count(*) >1
+
+
+-------- para anular un vale manualmente
+
+use midinero
+select * from vales where nro_vale = 500
+select * from cuotas where nro_solicitud = 45
+select * from rubros_cuotas where nro_solicitud = 45
+select * from autorizacion_desembolso where nro_solicitud = 45
+select * from transacciones_Debito where nro_solicitud = 44
+select * from transacciones where transaccion = 212
+select * from transacciones_Debito_por_rubro where transaccion = 212
+select * from transacciones
+
+select * from cuotas_devengadas where nro_solicitud = 44
+--delete from cuotas_devengadas where nro_solicitud = 44
+update transacciones set anulada_sn = 'S' where transaccion = 207
+insert into vales_anulados values (44,'20190724','173100','sa','sa') 
+delete from rubros_cuotas where nro_solicitud = 44
+delete from cuotas where nro_solicitud = 44
+delete from vales_observaciones where nro_solicitud = 44
+delete from vales where nro_solicitud = 44
+
+--------------------
+
+para agregar la direccion  a la dw de facturacion
+
+use sucred
+select * from facturas where nro_factura = 533
+ SELECT facturas.serie,
+         facturas.nro_factura,   
+         facturas.aaaamm,   
+         facturas.nro_solicitud,   
+         facturas.nro_cuota,   
+         facturas.nro_vale,   
+         facturas.rut,   
+         facturas.consumidor_final,    
+         facturas.nombre,  
+         rtrim(personas.calle) as calle,
+         rtrim(personas.nro_puerta) as nro_puerta,
+         rtrim(personas.sub_puerta) as sub_puerta,
+         facturas.fecha,   
+         facturas.vencimiento,   
+         facturas.moneda,   
+         facturas.iva,   
+         facturas.sub_total,   
+         renglones_facturas.nro_renglon,   
+         renglones_facturas.rubro,   
+         renglones_facturas.subrubro,   
+         rubros.den_rubro,   
+         renglones_facturas.importe,   
+         facturas.observaciones   
+    FROM facturas,   
+         renglones_facturas,   
+         rubros ,
+         personas, 
+         solicitudes
+   WHERE ( renglones_facturas.serie = facturas.serie ) and  
+         ( renglones_facturas.nro_factura = facturas.nro_factura ) and  
+         ( renglones_facturas.rubro = rubros.rubro ) and  
+         ( renglones_facturas.subrubro = rubros.sub_rubro ) and  
+         ( facturas.nro_solicitud = solicitudes.nro_solicitud ) and
+         ( solicitudes.id_persona = personas.id_persona ) and
+         ( ( facturas.impreso = 'N' ) and 
+         ( facturas.serie = 'A' and facturas.nro_factura >= 532) and
+		 ( facturas.serie = 'A' and facturas.nro_factura <= 533))   
+ORDER BY facturas.serie ASC,   
+         facturas.nro_factura ASC  
+
+
+--
+
+efectivoclic vales con promedio de dias de atraso
+
+
+use efectivoclic
+select v.nro_Vale, v.fecha_genera_vale,rtrim(v.nro_identificacion) + '-'+dbo.check_digit(v.nro_identificacion) as identificacion,dbo.dias_atraso_vale(v.nro_solicitud,'20190716') as mayores_dias_atraso_vale, avg(case when a.fecha_vencimiento > convert(char(8),getdate(),112) then 
+ case when saldo_cuota_vale < 1 then dbo.dias_atraso(a.fecha_vencimiento,a.fecha_cuota_vale) else 0 end
+else 
+	case when saldo_cuota_vale < 1 then dbo.dias_atraso(a.fecha_vencimiento,a.fecha_cuota_vale) else  dbo.dias_atraso(a.fecha_vencimiento,convert(char(8),getdate(),112)) end
+		
+	 end ) as promedio
+from cuotas a, vales v
+where a.nro_solicitud = v.nro_solicitud
+group by v.nro_vale,v.fecha_genera_vale, v.nro_identificacion, v.nro_solicitud
+------------------------------------------------------------------------------------------------------------
+
+
+
+use jardines
+--select * from transacciones_cobranza where nro_solicitud = 46
+delete from transacciones where transaccion in(98,99,100)
+delete from transacciones_cobranza where transaccion in(99,100)
+delete from transacciones_cobranza_asignacion where transaccion in(99,100)
+--select * from transacciones_debito where nro_solicitud = 46
+delete from transacciones_debito where transaccion in(98,99)
+delete from transacciones_debito_por_rubro where transaccion in(98,99)
+
+select * from transacciones_debito where transaccion in(98,99)
+select * from transacciones_debito_por_rubro where transaccion in(98,99)
+
+select a.transaccion 
+from transacciones_debito a,
+		transacciones b
+where a.transaccion = b.transaccion and
+		 a.cod_identificacion = 'ci' and
+		 a.nro_identificacion = '1727135' and
+		 a.nro_solicitud = 46 and
+		 a.nro_cuota = 0 and
+		 b.anulada_sn = 'N' 
+		 
+		 select * from transacciones where transaccion = 98
+		-- insert into transacciones values(98,'20190619','000000',11,'S')
+		--update transacciones set anulada_sn = 'N' where transaccion = 98
+		 select * from transacciones_debito where transaccion = 98
+		 -- insert into transacciones_debito values(98,'CI','1727135',46,0,'48000')
+		 select * from transacciones_debito_por_rubro where transaccion = 98
+		  -- insert into transacciones_debito_por_rubro values(98,'0','500',0,'48000')
+-----------------------------------
+
+mainaugroup vales para mopc 20190618
+
+select * from (
+	select 
+		pepe.nro_solicitud,
+		pepe.cod_id,
+		rtrim(pepe.nro_identificacion)+ ' - ' + dbo.Check_digit(pepe.NRO_IDENTIFICACION) AS nro_identificacion,
+		p.Ape1, 
+		p.Ape2,
+		p.Nom1,
+		p.Nom2,
+		p.Calle,
+		p.Nro_puerta, 
+		p.Sub_puerta, 
+		p.Referencia_domicilio, 
+		p.Telefono, 
+		p.Otro_telefono, 
+		p.Celular, 
+		p.Email,
+		c.nombre as Ciudad, 
+		d.NOMBRE AS Departamento,
+		(SELECT     COALESCE (COUNT(*), 0) AS Expr1
+									FROM          dbo.CUOTAS
+									WHERE      (Fecha_Vencimiento < CONVERT(char, GETDATE(), 112)) AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1) and nro_cuota = 1) 
+							  AS primera_cuota_vencida,
+		(SELECT     COALESCE (COUNT(*), 0) AS Expr1
+									FROM          dbo.CUOTAS
+									WHERE      (Fecha_Vencimiento < CONVERT(char, GETDATE(), 112)) AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) 
+							  AS Cantidad_cuotas_vencidas,
+		(SELECT    COALESCE (COUNT(*), 0) AS Expr1
+			FROM   dbo.CUOTAS AS CUOTAS_5
+			WHERE  (Fecha_Vencimiento >= CONVERT(char, GETDATE(), 112)) AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) AS Cantidad_cuotas_avencer,
+		(SELECT    COALESCE (SUM(round(Saldo_Cuota_Vale,3)), 0) AS Expr1
+			FROM   dbo.CUOTAS AS CUOTAS_4
+			WHERE  (Fecha_Vencimiento < CONVERT(char, GETDATE(), 112)) AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) AS Saldo_total_vencido,
+		(SELECT    COALESCE (SUM(Saldo_Cuota_Vale), 0) AS Expr1
+			FROM   dbo.CUOTAS AS CUOTAS_3
+			WHERE  (Fecha_Vencimiento >= CONVERT(char, GETDATE(), 112)) AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) AS Saldo_total_avencer,
+		(SELECT    ROUND(COALESCE (SUM(Saldo_Cuota_Vale), 0), 2) AS Expr1
+			FROM dbo.CUOTAS AS CUOTAS_2
+			WHERE (Nro_Solicitud = v.Nro_Solicitud)) AS saldo_total_vale, v.Fecha_Saldo_Vale AS Fecha_ultimo_pago,
+		Dias_atraso_vale,
+		(SELECT  ISNULL(SUM(mora_cuota), 0) AS Expr1
+			FROM (SELECT     dbo.Fx_Calculo_Mora_Cuota(c.Nro_Solicitud, c.Nro_Cuota, c.Fecha_Vencimiento, SUM(r.Saldo_Rubro_Cuota)) AS Mora_cuota
+															FROM          dbo.CUOTAS AS c INNER JOIN
+																				   dbo.RUBROS_CUOTAS AS r ON c.Nro_Solicitud = r.Nro_Solicitud AND c.Nro_Cuota = r.Nro_Cuota
+															WHERE      (c.Fecha_Vencimiento < CONVERT(char, GETDATE(), 112)) AND (c.Nro_Solicitud = pepe.nro_solicitud) AND (c.Saldo_Cuota_Vale > 0.1) AND 
+																				   (r.Rubro IN ('500', '600'))
+															GROUP BY c.Nro_Cuota, c.Nro_Solicitud, c.Fecha_Vencimiento) AS a_1) AS Total_mora,
+		(SELECT     COALESCE (COUNT(*), 0) AS Expr1
+			FROM          dbo.PERSONAS_CLEARING
+			WHERE      (NRO_SOLICITUD = v.Nro_Solicitud)) AS En_clearing,
+		(SELECT     COALESCE (round(sum(saldo_rubro_cuota),3), 0) AS Expr1
+			FROM          dbo.rubros_cuotas
+			WHERE      NRO_SOLICITUD = v.Nro_Solicitud
+			and rubro = '500') AS saldo_capital_vale, 
+			pepe.usuario
+		--into tmp_vales_con_atraso_diario	
+	from (
+		select s.nro_solicitud, 
+				s.id_persona,
+				v.nro_vale,
+				i.cod_id,
+				i.nro_identificacion AS nro_identificacion,
+				v.fecha_saldo_vale as fecha_ultimo_pago,
+				v.usuario,
+				(select isnull(max(datediff(day,convert(datetime,substring(c.fecha_vencimiento,7,2)+'/'+substring(c.fecha_vencimiento,5,2)+'/'+substring(c.fecha_vencimiento,1,4)), CONVERT(char(8), GETDATE(), 112))),0) 
+							from cuotas c,rubros_cuotas r
+							where c.nro_solicitud = r.nro_solicitud
+							and c.nro_cuota = r.nro_cuota
+							and r.rubro = 500
+							and r.saldo_rubro_cuota > 0.1
+							and c.nro_solicitud = s.nro_solicitud ) as dias_atraso_vale 
+						
+		from solicitudes s
+			inner join identificaciones i on i.id_persona = s.id_persona
+			inner join vales v on v.nro_solicitud = s.nro_solicitud
+		where v.saldo_vale > 0.1 and s.seccion = 'DSMBLSDO' ) pepe inner join 
+		dbo.IDENTIFICACIONES AS i ON i.ID_PERSONA = pepe.ID_PERSONA INNER JOIN
+		dbo.PERSONAS AS p ON p.ID_PERSONA = pepe.ID_PERSONA INNER JOIN
+		dbo.CIUDAD AS c ON c.ID_DEPARTAMENTO = p.ID_DEPARTAMENTO AND c.ID_CIUDAD = p.ID_CIUDAD INNER JOIN
+		dbo.DEPARTAMENTO AS d ON p.ID_DEPARTAMENTO = d.ID_DEPARTAMENTO INNER JOIN
+		dbo.VALES AS v ON v.Nro_Solicitud = pepe.NRO_SOLICITUD 
+	where dias_atraso_vale > 9
+	
+	)  a
+where (Cantidad_cuotas_vencidas > 1 or (Cantidad_cuotas_vencidas <= 1 and primera_cuota_vencida <> 1 ))
+
+order by nro_solicitud
+
+
+
+
+mainaugroup
+
+select dbo.Fx_Calculo_Mora_Cuota(9208,5,'20190527',1165.805)
+
+
+-----------------------------------
+
+efectivo clic para monitorear pagos de cobranza externa
+
+use efectivo clic
+select t.transaccion from transacciones_cobranza t, transacciones b 
+where t.transaccion = b.transaccion 
+and b.fecha >= '20190601'
+and b.fecha <='20190612'
+and  nro_solicitud in(
+	select a.nro_vale from vales a, solicitudes b
+	where a.nro_solicitud = b.nro_solicitud
+	and b.tipo_Credito = 3)
+	
+
+
+------------ planilla vales EFECTIVO CLIC
+select
+nro_solicitud, 
+nro_vale,
+cod_identificacion,
+nro_identificacion,
+ape1,
+nom1,
+ sum(mora_Adeudada) + saldo_vale as total_adeudado from(
+select a.nro_solicitud,
+       a.nro_vale,
+       e.cod_asesor,
+       f.nombre,
+       a.cod_identificacion,
+       a.nro_identificacion,
+       d.ape1,
+       d.nom1,
+       d.sexo,
+       d.fecha_nacimiento,
+       a.capital,
+       a.cuotas as cantidad_cuotas,
+       (select sum(monto_cuota) from
+	cuotas 
+	where nro_solicitud = a.nro_solicitud) as monto_financiado,
+       a.fecha_genera_vale,
+       b.nro_cuota,
+	  b.fecha_vencimiento,
+       b.monto_cuota,
+      (select valor_rubro from rubros_cuotas 
+	where nro_solicitud = a.nro_solicitud and 
+	      nro_cuota = b.nro_cuota and
+	      rubro = 500) as capital_cuota,
+   (select valor_rubro from rubros_cuotas 
+	where nro_solicitud = a.nro_solicitud and 
+	      nro_cuota = b.nro_cuota and
+	      rubro = 600) as intereses_cuota,
+       (select valor_rubro from rubros_cuotas 
+	where nro_solicitud = a.nro_solicitud and 
+	      nro_cuota = b.nro_cuota and
+	      rubro = 700) as iva_cuota,
+       (select valor_rubro from rubros_cuotas 
+	where nro_solicitud = a.nro_solicitud and 
+	      nro_cuota = b.nro_cuota and
+	      rubro = 800) as gastos_adm_cuota,
+       (select valor_rubro from rubros_cuotas 
+	where nro_solicitud = a.nro_solicitud and 
+	      nro_cuota = b.nro_cuota and
+	      rubro = 900) as seguro_cuota,
+       (select valor_rubro from rubros_cuotas 
+	where nro_solicitud = a.nro_solicitud and 
+	      nro_cuota = b.nro_cuota and
+	      rubro = 950) as comisiones_cuota,
+       (select valor_rubro from rubros_cuotas 
+	where nro_solicitud = a.nro_solicitud and 
+	      nro_cuota = b.nro_cuota and
+	      rubro = 970) as costo_envio_cuota,
+       (select valor_rubro from rubros_cuotas 
+	where nro_solicitud = a.nro_solicitud and 
+	      nro_cuota = b.nro_cuota and
+	      rubro = 980) as redondeo_cuota,
+	round(b.saldo_cuota_vale,2) as saldo_Cuota_vale,
+	(select round(sum(saldo_cuota_vale),2) from cuotas
+	 where nro_solicitud = a.nro_solicitud) as saldo_vale,
+	  ISNULL((SELECT round(isnull(sum(tca.monto),0),2) FROM 
+		transacciones_cobranza tc,
+		transacciones_cobranza_asignacion tca
+		WHERE tca.rubro = '400' 
+		AND tc.transaccion = tca.transaccion
+		AND tc.nro_solicitud = e.NRO_SOLICITUD 
+			 AND tca.nro_cuota = b.Nro_Cuota GROUP BY tc.nro_solicitud, tca.nro_cuota),0) AS mora_cuota,
+	ISNULL((SELECT isnull(max(t.fecha),'') FROM 
+		transacciones t,
+		transacciones_cobranza tc, 
+		transacciones_cobranza_asignacion tca
+		WHERE t.transaccion = tc.transaccion
+		AND tc.transaccion = tca.transaccion
+		AND tc.nro_solicitud = e.NRO_SOLICITUD 
+		AND tca.nro_cuota = b.Nro_Cuota GROUP BY  tc.nro_solicitud, tca.nro_cuota),'') AS fecha_pago,
+	(case when fecha_vencimiento <= convert(char(8),getdate(),112) and b.saldo_cuota_vale > 1 then 'S' else 'N' end) as cuota_atrasada,
+	(select round(sum(saldo_rubro_cuota),2) from rubros_cuotas 
+	where nro_solicitud = a.nro_solicitud and 
+	      rubro = 500) as saldo_capital	 ,
+	      dbo.Fx_Calculo_Mora_Cuota(a.nro_solicitud, b.nro_cuota,b.fecha_vencimiento,(select round(sum(saldo_rubro_cuota),2) from rubros_cuotas 
+			where nro_solicitud = a.nro_solicitud and rubro in('500','600') and nro_cuota = b.nro_cuota)) as mora_adeudada
+from vales a,	
+     cuotas b,
+     identificaciones c,
+     personas d,
+     solicitudes e,
+     asesores f
+where a.nro_solicitud = b.nro_solicitud and
+      a.cod_identificacion = c.cod_id and
+      a.nro_identificacion = c.nro_identificacion and
+      c.id_persona = d.id_persona and
+      a.nro_solicitud = e.nro_solicitud and
+      e.cod_asesor = f.cod_asesor and
+	 e.seccion = 'DSMBLSDO' and
+	 a.saldo_vale > 1
+	-- (e.cod_sucursal = :wcod_sucursal or :wcod_sucursal = 0 )
+	--and a.nro_solicitud = 4795
+ 
+             ) a
+             group by nro_solicitud, nro_vale,cod_identificacion,
+nro_identificacion,
+ape1,
+nom1,  a.saldo_vale
+             
+
+
+
+------------------------------------------------------------------------
+Mainau reporte de vales general con datos de la persona
+
+
+SELECT dbo.VALES.nro_vale,
+    dbo.VALES.Cod_Identificacion,
+    dbo.VALES.Nro_Identificacion,
+    (SELECT     ISNULL(LTRIM(RTRIM(a.NOM1)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS primer_nombre,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.NOM2)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS segundo_nombre,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.APE1)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS primer_apellido,
+    (SELECT     ISNULL(LTRIM(RTRIM(a.APE2)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS segundo_apellido,
+    --
+    (SELECT     ISNULL(LTRIM(RTRIM(a.sexo)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS sexo,
+    
+    (SELECT     ISNULL(LTRIM(RTRIM(c.detalle)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                  dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+                  inner join dbo.ocupacion as c on c.id_ocupacion = a.ocupacion
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS ocupacion,
+    
+    (SELECT     ISNULL(LTRIM(RTRIM(e.nombre)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                  dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+                --  inner join dbo.barrio as c on c.id_barrio = a.id_barrio and a.id_ciudad = c.id_ciudad and a.id_departamento = c.id_departamento
+                --inner join dbo.ciudad as d on c.id_departamento = d.id_departamento and c.id_ciudad = d.id_ciudad
+                  inner join dbo.departamento as e on a.id_departamento = e.id_departamento
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS departamento,
+    
+    (SELECT     ISNULL(LTRIM(RTRIM(d.nombre)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                  dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+                --  inner join dbo.barrio as c on c.id_barrio = a.id_barrio and a.id_ciudad = c.id_ciudad and a.id_departamento = c.id_departamento
+				  inner join dbo.ciudad as d on a.id_departamento = d.id_departamento and a.id_ciudad = d.id_ciudad
+                --  inner join dbo.departamento as e on a.id_departamento = e.id_departamento
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS ciudad,
+    
+    (SELECT     ISNULL(LTRIM(RTRIM(c.nombre)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                  dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+                  inner join dbo.barrio as c on c.id_barrio = a.id_barrio and a.id_ciudad = c.id_ciudad and a.id_departamento = c.id_departamento
+                  inner join dbo.ciudad as d on c.id_departamento = d.id_departamento and c.id_ciudad = d.id_ciudad
+                  inner join dbo.departamento as e on c.id_departamento = e.id_departamento
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS barrio,
+    
+    (SELECT     ISNULL(LTRIM(RTRIM(a.estado_civil)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                  dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS estado_civil,
+    
+    --
+  
+  (SELECT     ISNULL(LTRIM(RTRIM(a.CALLE)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS calle,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.NRO_PUERTA)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS puerta,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.SUB_PUERTA)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS sub_puerta,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.CELULAR)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS celular,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.EMAIL)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS email,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.TELEFONO)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS telefono,
+    (select descripcion from tipo_credito where tipo_credito = dbo.SOLICITUDES.tipo_credito) as tipo_de_credito,
+    dbo.VALES.Capital,
+    dbo.VALES.Cuotas,
+    dbo.VALES.Fecha_Genera_Vale,    
+    (SELECT     Fecha_Vencimiento
+    FROM          dbo.CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Nro_Cuota = 1)) AS vto_primera_cuota,
+    (SELECT     MAX(Fecha_Vencimiento) AS Expr1
+    FROM          dbo.CUOTAS AS CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud)) AS vencimiento_ultima_cuota,
+    CAST(dbo.VALES.Valor_Tasa_Anual AS numeric(18, 2)) AS Valor_Tasa_Anual,   
+    CAST(dbo.VALES.Valor_Tasa_Mensual AS numeric(18, 2)) AS valor_tasa_mensual,
+    dbo.VALES.Porcentaje_Seguro,
+    dbo.VALES.Fecha_Saldo_Vale,
+    dbo.VALES.Saldo_Vale,
+  (SELECT     SUM(Monto_Cuota) AS Expr1
+    FROM          dbo.CUOTAS AS CUOTAS_4
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud)) AS monto_total_a_pagar,
+  (SELECT     Monto_Cuota
+    FROM          dbo.CUOTAS AS CUOTAS_3
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Nro_Cuota = 1)) AS monto_cuota,
+    (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 500)) AS Capital,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 600)) AS Intereses,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_3
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 700)) AS Iva,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_2
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 800)) AS Gastos,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 980)) AS Redondeo,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 900)) AS Seguro,
+    (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 500)) AS Capital_saldo,
+    (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 600)) AS Intereses_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_3
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 700)) AS Iva_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_2
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 800)) AS Gastos_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 980)) AS Redondeo_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 900)) AS Seguro_saldo,
+          (select min(nro_cuota) AS Expr1                                                         
+    from dbo.cuotas  AS CUOTAS_1                                                                  
+    where (nro_solicitud = dbo.vales.nro_solicitud) and (saldo_cuota_vale > 0.5)) AS cuota_impaga ,
+      (select min(fecha_vencimiento) AS Expr1                                                         
+    from dbo.cuotas  AS CUOTAS_1                                                                  
+    where (nro_solicitud = dbo.vales.nro_solicitud) and (saldo_cuota_vale > 0.5)) AS fecha_cuota_impaga ,
+    --(select dbo.Dias_Atraso_Vale(dbo.vales.nro_solicitud,CONVERT(varchar(8), getdate(), 112))) as dias_atraso,
+    (select dbo.Dias_Atraso_Vale(dbo.vales.nro_solicitud,'20190607')) as dias_atraso,
+    isnull(dbo.SOLICITUDES.MONTO_SOLICITUD_CANCELA,0) as monto_solicitud_cancela, 
+    --dbo.VALES.Gastos_Desembolso, -- cargo por otorgamiento sin iva
+    dbo.VALES.usuario,
+    dbo.VALES.cod_fondeo,
+  (SELECT     CAST(tasa_mora AS numeric(18, 2)) AS Expr1
+    FROM          dbo.Tasas AS Tasas_1
+    WHERE      (COD_FONDEO = dbo.VALES.cod_fondeo)) AS tasa_mora_anual,
+  (select count(nro_solicitud) as expr1
+    from vales_gestion_cobranza as vgc1
+    where (nro_solicitud = dbo.vales.nro_solicitud)) as en_vgc,
+     (select count(nro_solicitud) as expr1
+    from personas_clearing as pc1
+    where (nro_solicitud = dbo.vales.nro_solicitud)) as en_clearing
+FROM dbo.VALES INNER JOIN     dbo.SOLICITUDES ON dbo.VALES.Nro_Solicitud = dbo.SOLICITUDES.NRO_SOLICITUD
+    and dbo.solicitudes.seccion = 'DSMBLSDO'
+    and vales.saldo_vale > 1
+
+
+
+
+--- webservice mainaugroup ---------------------------------------------
+produccion: 	http://172.22.20.229:8080/WSGAvance/Avance?wsdl
+testing: 	http://test.gsoft.com.uy/WSGAvance/Avance?wsdl
+------------------------------------------------------------------------
+
+PD: adjunto queries (para nosotros) --- updates en gsafmas
+
+update operacion
+
+set dicose_a = '030621387',dicose_c = '030621387',dicose_d = '030621387',guia = 'X734257',fecha = '20190507'
+
+where nro_operacion = 31042
+
+ 
+
+update caravana set dicose_ubicacion  = '030621387',guia = 'X734257' where codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 31042)
+
+
+
+--------- sp_genero_vales_con_atraso_diario con columna total_a_pagar
+
+USE [MainauGroup]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_genero_vales_con_atraso_diario]    Script Date: 04/30/2019 15:16:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER procedure [dbo].[sp_genero_vales_con_atraso_diario]
+as
+declare @fecha_enviado char(8)
+declare @hora_enviado char(6)
+declare @ErrorCode int
+
+set nocount on
+
+set @fecha_enviado	= (convert(char(8),getdate(),112))						-- 20141128
+set @hora_enviado	= replace(Convert (varchar(8),GetDate(), 108),':','')	-- 104813
+
+-- genero archivo xls vales gestion
+declare @filename varchar(250)
+set @filename = 'c:\temp\MainauGroup_Vales_Atraso_Diario_'+@fecha_enviado+'.xls'
+
+drop table tmp_vales_con_atraso_diario
+
+select *,saldo_total_vale+total_mora as total_a_pagar
+into tmp_vales_con_atraso_diario
+from (
+select 
+pepe.nro_solicitud,
+pepe.cod_id,
+rtrim(pepe.nro_identificacion)+ ' - ' + dbo.Check_digit(pepe.NRO_IDENTIFICACION) AS nro_identificacion,
+p.Ape1, 
+p.Ape2,
+p.Nom1,
+p.Nom2,
+p.Calle,
+p.Nro_puerta, 
+p.Sub_puerta, 
+p.Referencia_domicilio, 
+p.Telefono, 
+p.Otro_telefono, 
+p.Celular, 
+p.Email,
+c.nombre as Ciudad, 
+d.NOMBRE AS Departamento,
+(SELECT     COALESCE (COUNT(*), 0) AS Expr1
+                            FROM          dbo.CUOTAS
+                            WHERE      (Fecha_Vencimiento < CONVERT(char, GETDATE(), 112)) AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) 
+                      AS Cantidad_cuotas_vencidas,
+(SELECT    COALESCE (COUNT(*), 0) AS Expr1
+    FROM   dbo.CUOTAS AS CUOTAS_5
+    WHERE  (Fecha_Vencimiento >= CONVERT(char, GETDATE(), 112)) AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) AS Cantidad_cuotas_avencer,
+(SELECT    COALESCE (SUM(round(Saldo_Cuota_Vale,3)), 0) AS Expr1
+    FROM   dbo.CUOTAS AS CUOTAS_4
+    WHERE  (Fecha_Vencimiento < CONVERT(char, GETDATE(), 112)) AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) AS Saldo_total_vencido,
+(SELECT    COALESCE (SUM(Saldo_Cuota_Vale), 0) AS Expr1
+    FROM   dbo.CUOTAS AS CUOTAS_3
+    WHERE  (Fecha_Vencimiento >= CONVERT(char, GETDATE(), 112)) AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) AS Saldo_total_avencer,
+(SELECT    ROUND(COALESCE (SUM(Saldo_Cuota_Vale), 0), 2) AS Expr1
+    FROM dbo.CUOTAS AS CUOTAS_2
+    WHERE (Nro_Solicitud = v.Nro_Solicitud)) AS saldo_total_vale, v.Fecha_Saldo_Vale AS Fecha_ultimo_pago,
+Dias_atraso_vale,
+(SELECT  ISNULL(SUM(mora_cuota), 0) AS Expr1
+    FROM (SELECT     dbo.Fx_Calculo_Mora_Cuota(c.Nro_Solicitud, c.Nro_Cuota, c.Fecha_Vencimiento, SUM(r.Saldo_Rubro_Cuota)) AS Mora_cuota
+                                                    FROM          dbo.CUOTAS AS c INNER JOIN
+                                                                           dbo.RUBROS_CUOTAS AS r ON c.Nro_Solicitud = r.Nro_Solicitud AND c.Nro_Cuota = r.Nro_Cuota
+                                                    WHERE      (c.Fecha_Vencimiento < CONVERT(char, GETDATE(), 112)) AND (c.Nro_Solicitud = pepe.nro_solicitud) AND (c.Saldo_Cuota_Vale > 0.1) AND 
+                                                                           (r.Rubro IN ('500', '600'))
+                                                    GROUP BY c.Nro_Cuota, c.Nro_Solicitud, c.Fecha_Vencimiento) AS a_1) AS Total_mora,
+(SELECT     COALESCE (COUNT(*), 0) AS Expr1
+    FROM          dbo.PERSONAS_CLEARING
+    WHERE      (NRO_SOLICITUD = v.Nro_Solicitud)) AS En_clearing,
+(SELECT     COALESCE (round(sum(saldo_rubro_cuota),3), 0) AS Expr1
+    FROM          dbo.rubros_cuotas
+    WHERE      NRO_SOLICITUD = v.Nro_Solicitud
+    and rubro = '500') AS saldo_capital_vale
+	
+ from (
+select s.nro_solicitud, 
+s.id_persona,
+		v.nro_vale,
+		i.cod_id,
+		i.nro_identificacion AS nro_identificacion,
+		v.fecha_saldo_vale as fecha_ultimo_pago,
+		(select isnull(max(datediff(day,convert(datetime,substring(c.fecha_vencimiento,7,2)+'/'+substring(c.fecha_vencimiento,5,2)+'/'+substring(c.fecha_vencimiento,1,4)), CONVERT(char(8), GETDATE(), 112))),0) 
+					from cuotas c,rubros_cuotas r
+					where c.nro_solicitud = r.nro_solicitud
+					and c.nro_cuota = r.nro_cuota
+					and r.rubro = 500
+					and r.saldo_rubro_cuota > 0.1
+					and c.nro_solicitud = s.nro_solicitud ) as dias_atraso_vale 
+					
+from solicitudes s
+inner join identificaciones i on i.id_persona = s.id_persona
+inner join vales v on v.nro_solicitud = s.nro_solicitud
+where v.saldo_vale > 0.1 and s.seccion = 'DSMBLSDO' 
+-- and s.nro_solicitud not in ( select vgs.nro_solicitud from vales_gestion_cobranza vgs ) 
+-- and s.nro_solicitud not in ( select vgs2.nro_solicitud from vales_gestion_cobranza2 vgs2 ) 
+) pepe inner join 
+ dbo.IDENTIFICACIONES AS i ON i.ID_PERSONA = pepe.ID_PERSONA INNER JOIN
+                      dbo.PERSONAS AS p ON p.ID_PERSONA = pepe.ID_PERSONA INNER JOIN
+                      dbo.CIUDAD AS c ON c.ID_DEPARTAMENTO = p.ID_DEPARTAMENTO AND c.ID_CIUDAD = p.ID_CIUDAD INNER JOIN
+                      dbo.DEPARTAMENTO AS d ON p.ID_DEPARTAMENTO = d.ID_DEPARTAMENTO INNER JOIN
+                      dbo.VALES AS v ON v.Nro_Solicitud = pepe.NRO_SOLICITUD 
+
+where dias_atraso_vale >=1) kk
+order by nro_solicitud
+
+exec generate_excel_with_columns tmp_vales_con_atraso_diario, @filename
+
+---- genero archivo xls cobranzas
+set @filename = 'c:\temp\MainauGroup_Cobranzas_Diarias_'+@fecha_enviado+'.xls'
+
+drop table tmp_vales_cobranza_diaria
+
+select t.transaccion, t.fecha, tc.nro_identificacion, cast(tc.monto as numeric(18,2)) as monto, v.nro_vale, v.nro_solicitud
+into tmp_vales_cobranza_diaria 
+from transacciones_cobranza tc, transacciones t, vales v
+where t.transaccion = tc.transaccion and
+	tc.nro_solicitud = v.nro_solicitud and
+	anulada_sn = 'N' and
+	t.fecha = DATEADD(day, -1, @fecha_enviado)
+	order by t.fecha, t.hora
+
+exec generate_excel_with_columns tmp_vales_cobranza_diaria, @filename
+
+--select t.transaccion, t.fecha, tc.nro_identificacion, cast(tc.monto as numeric(18,2)) as monto, v.nro_vale, v.nro_solicitud
+--into tmp_vales_cobranza_diaria 
+--from transacciones_cobranza tc, transacciones t, vales v
+--where	t.transaccion = tc.transaccion and
+--	tc.nro_solicitud = v.nro_solicitud and
+--	anulada_sn = 'N' 
+--	order by t.fecha, t.hora
+
+SET ANSI_NULLS OFF
+
+
+
+-----------------JOIN
+
+select * from transacciones a, transacciones_cobranza b, transacciones_cobranza_asignacion c
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and a.transaccion = 69484
+and b.nro_solicitud = 6367
+---------------------
+
+mila correccion de vales
+
+select a.*, b.nro_vale, b.fecha_genera_vale,b.cuotas,b.nro_identificacion, b.usuario, b.capital
+from tmp_vales_cabal a , vales b, solicitudes c
+where left(a.documento,7) = b.nro_identificacion
+and b.nro_solicitud = c.nro_solicitud
+and c.seccion = 'DSMBLSDO'
+and b.fecha_genera_vale > '20181101'
+and a.cuotas = b.cuotas
+--and a.fecha_proceso = b.fecha_genera_vale
+
+------------------------mainaugroup intereses devengados no cobrados --------------------------------------------
+
+use mainaugroup
+select  v.nro_vale,  a.cod_identificacion, a.nro_identificacion, v.nro_solicitud, b.nro_cuota , v.fecha_genera_vale,a.transaccion, b.monto as monto_interes, c.fecha as fecha_devengamiento,
+(select dbo.Dias_Atraso_Vale(v.nro_solicitud,'20190331')) as dias_atraso 
+from transacciones_debito a , transacciones_Debito_por_rubro b, transacciones c, rubros_cuotas r, vales v
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and b.nro_cuota = r.nro_cuota
+and a.nro_solicitud = r.nro_solicitud
+and b.rubro = r.rubro
+and a.nro_solicitud = v.nro_solicitud
+--and a.nro_solicitud = 1
+and b.rubro = '600'
+and r.saldo_rubro_cuota > 0.5
+and dbo.Dias_Atraso_Vale(v.nro_solicitud,'xxxxxxxx')>120
+and v.fecha_Genera_vale <'20190401'
+order by v.nro_vale
+
+-- mejorado
+
+use mainaugroup
+select v.nro_solicitud,
+v.nro_vale,
+	v.cod_identificacion,
+	v.nro_identificacion,
+	r.nro_cuota,
+	v.fecha_genera_vale,
+	a.transaccion,
+	c.fecha as fecha_devengamiento,
+	b.rubro,
+	u.den_rubro,
+	b.monto as monto_rubro,
+	(select dbo.Dias_Atraso_Vale(v.nro_solicitud,'xxxxxxxx')) as dias_atraso 
+from transacciones_debito a , transacciones_Debito_por_rubro b, transacciones c, rubros_cuotas r, vales v, rubros u
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and b.nro_cuota = r.nro_cuota
+and a.nro_solicitud = r.nro_solicitud
+and b.rubro = r.rubro
+and a.nro_solicitud = v.nro_solicitud
+and r.rubro = u.rubro
+--and a.nro_solicitud = 1
+--and b.rubro = '600'
+--and b.rubro <> '700'
+and r.saldo_rubro_cuota > 0.5
+and dbo.Dias_Atraso_Vale(v.nro_solicitud,'xxxxxxxx') > 120
+and v.fecha_Genera_vale <'20190401'
+order by v.nro_vale
+
+muy mejorado
+
+use mainaugroup
+select v.nro_solicitud,
+v.nro_vale,
+	v.cod_identificacion,
+	v.nro_identificacion,
+	r.nro_cuota,
+	v.fecha_genera_vale,
+	a.transaccion,
+	c.fecha as fecha_devengamiento,
+	b.rubro,
+	u.den_rubro,
+	b.monto as monto_rubro,
+	(select dbo.fx_max_dias_atraso_a_hoy(v.nro_solicitud)) as maximo_dia_atraso,
+	(select round(saldo_rubro_cuota,2) from rubros_cuotas xx where xx.nro_Solicitud = v.nro_solicitud and xx.nro_cuota = r.nro_cuota and rubro = '500') as saldo_Capital 
+from transacciones_debito a , transacciones_Debito_por_rubro b, transacciones c, rubros_cuotas r, vales v, rubros u
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and b.nro_cuota = r.nro_cuota
+and a.nro_solicitud = r.nro_solicitud
+and b.rubro = r.rubro
+and a.nro_solicitud = v.nro_solicitud
+and r.rubro = u.rubro
+--and a.nro_solicitud = 1
+--and b.rubro = '600'
+--and b.rubro <> '700'
+and r.saldo_rubro_cuota > 0.5
+and dbo.Dias_Atraso_Vale(v.nro_solicitud,'xxxxxxxx') >= 0 
+--and v.fecha_Genera_vale <'20190625'
+order by v.nro_vale
+
+--
+select * ,    
+    (select dbo.Dias_Atraso_Vale(dbo.vales.nro_solicitud,'20190331')) as dias_atraso
+    FROM dbo.VALES ,SOLICITUDES
+    where .VALES.Nro_Solicitud = dbo.SOLICITUDES.NRO_SOLICITUD
+    and dbo.solicitudes.seccion = 'DSMBLSDO'
+    and dbo.vales.saldo_vale > 0.5
+    and dbo.Dias_Atraso_Vale(dbo.vales.nro_solicitud,'20190331')>120
+	and fecha_Genera_vale <'20190401'
+
+--
+select  v.nro_vale,  a.cod_identificacion, a.nro_identificacion, v.nro_solicitud, b.nro_cuota , v.fecha_genera_vale,a.transaccion, b.monto as monto_interes, c.fecha as fecha_devengamiento,
+(select dbo.Dias_Atraso_Vale(v.nro_solicitud,'20190331')) as dias_atraso 
+from transacciones_debito a , transacciones_Debito_por_rubro b, transacciones c, rubros_cuotas r, vales v
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and b.nro_cuota = r.nro_cuota
+and a.nro_solicitud = r.nro_solicitud
+and b.rubro = r.rubro
+and a.nro_solicitud = v.nro_solicitud
+--and a.nro_solicitud = 1
+and b.rubro = '600'
+and r.saldo_rubro_cuota > 0.5
+and dbo.Dias_Atraso_Vale(v.nro_solicitud,'20190331')>120
+and v.fecha_Genera_vale <'20190401'
+order by v.nro_vale
+
+
+select distinct(v.nro_vale)
+from transacciones_debito a , transacciones_Debito_por_rubro b, transacciones c, rubros_cuotas r, vales v
+where a.transaccion = b.transaccion
+and a.transaccion = c.transaccion
+and b.nro_cuota = r.nro_cuota
+and a.nro_solicitud = r.nro_solicitud
+and b.rubro = r.rubro
+and a.nro_solicitud = v.nro_solicitud
+--and a.nro_solicitud = 1
+and b.rubro = '600'
+and r.saldo_rubro_cuota > 0.5
+and dbo.Dias_Atraso_Vale(v.nro_solicitud,'20190331')>120
+and v.fecha_Genera_vale <'20190401'
+order by v.nro_vale
+
+----------------------------------
+
+
+use mila
+
+select gastos_desembolso from vales where nro_solicitud = 3451 -- cargo total sin iva 161.02
+select gastos_desembolso/cuotas from vales where nro_solicitud = 3451 -- cargo cuota sin iva
+select gastos_desembolso*1.22/cuotas from vales where nro_solicitud = 3451 -- cargo cuota con iva
+select gastos_desembolso/cuotas * 0.22 from vales where nro_solicitud = 3451 -- iva cargo cuota
+
+-- modifico capital 500
+update rubros_cuotas 
+set valor_rubro = round(valor_rubro + (select gastos_desembolso*1.22/cuotas from vales where nro_solicitud >=3451 and nro_solicitud <= 3522) ,2)
+where nro_solicitud = 3451 and rubro = 500 and valor_rubro <> saldo_rubro_cuota
+
+-- modifico iva 700
+update rubros_cuotas 
+set valor_rubro = round(valor_rubro - (select gastos_desembolso/cuotas * 0.22 from vales where nro_solicitud >=3451 and nro_solicitud <= 3522) ,2)
+where nro_solicitud = 3451 and rubro = 700 and valor_rubro <> saldo_rubro_cuota
+
+-- modifico gastos 800
+update rubros_cuotas 
+set valor_rubro = round(valor_rubro - (select gastos_desembolso/cuotas from vales where nro_solicitud >=3451 and nro_solicitud <= 3522) ,2)
+where nro_solicitud = 3451 and rubro = 800 and valor_rubro <> saldo_rubro_cuota
+
+
+select sum(valor_rubro) from rubros_cuotas where nro_solicitud >=3451 and nro_solicitud <= 3522 and rubro = 500
+select capital from vales where nro_solicitud = 3451
+select * from rubros_cuotas where nro_solicitud = 3451
+
+select * from rubros_cuotas where valor_rubro <> saldo_rubro_cuota and nro_solicitud >=3451 and nro_solicitud <= 3522 and saldo_rubro_cuota > 0.05
+
+
+select * from vales where nro_solicitud >=3451 and nro_solicitud <= 3522
+select gastos_desembolso from vales where nro_solicitud >=3451 and nro_solicitud <= 3522
+select * from rubros_cuotas where nro_solicitud =3451
+
+--
+
+select * from transacciones_COBRANZA where nro_solicitud  in (3451         
+,3461         
+,3466         
+,3467         
+,3470         
+,3471         
+,3472         
+,3473         
+,3474         
+,3475         
+,3476         
+,3477         
+,3478         
+,3479         
+,3480         
+,3481         
+,3483         
+,3484         
+,3485         
+,3486         
+,3487         
+,3489         
+,3491         
+,3492         
+,3495         
+,3496         
+,3497         
+,3498         
+,3499         
+,3500         
+,3501         
+,3503         
+,3504         
+,3505         
+,3506         
+,3507         
+,3508         
+,3509         
+,3510         
+,3511         
+,3512         
+,3513         
+,3514         
+,3515         
+,3516         
+,3517         
+,3518         
+,3519         
+,3520         
+,3521         
+,3522 )
+
+------------------- CORRER PROC ALM CON PARAMETROS ----------------------
+
+USE [MainauGroup]
+GO
+
+DECLARE	@return_value int
+
+EXEC	@return_value = [dbo].[sp_consulto_infobank]
+		@cedula = N'28948313',
+		@periodo = N'201901',
+		@idPersona = 22222
+
+SELECT	'Return Value' = @return_value
+
+GO
+
+
+
+
+--------------------------
+update control_numeracion_comprobante set estado = 'D', transaccion = '', usuario = '' where numero = '328322'
+
+--------------------------------------------------------------------------------
+select b.fecha as fecha_contable, 
+            u.fecha as fecha_sistema,
+            u.hora,
+            u.usuario as usuario_cobranza,
+            du.dominio as sucursal_cobranza,
+            a.transaccion,
+            case b.cod_transaccion when '01' then 'Cobranza' when '15' then 'Descuento' when '20' then 'Ajuste' end as cod_transaccion, 
+            a.cod_identificacion, 
+            a.nro_identificacion,
+            a.nro_solicitud, 
+            c.nro_Vale, 
+            a.monto, 
+            case a.cancela_sn when 'S' then 'Si' when 'N' then 'No' end as cancela_sn , 
+            e.nom1, 
+            e.nom2,
+            e.ape1, 
+            e.ape2,
+            case f.nuevo_renova when 'N' then 'Nuevo' when 'E' then 'Renovación' when 'R' then 'Refinanciación' end nuevo_renova,
+            t.tipo_credito,
+            t.descripcion,
+            c.cuotas as cantidad_cuotas,
+            g.nro_cuota,
+            g.rubro,
+            r.den_rubro,
+            round(g.monto,2) as monto,
+            dbo.dias_atraso_vale(f.nro_solicitud, '20190204') as dias_atraso_vale,
+            isnull((select top(1) numero from control_numeracion_comprobante num where num.transaccion = b.transaccion),0) as nro_recibo
+            --num.*
+from transacciones_cobranza a, transacciones b, --left outer join control_numeracion_comprobante num on b.transaccion = num.transaccion, 
+      transacciones_cobranza_asignacion g,
+      vales c, identificaciones d, personas e, solicitudes f, 
+      transacciones_usuarios u, tipo_credito t, seguridad_mila.dbo.dominios_usuarios du, rubros r
+where a.transaccion = b.transaccion 
+            and a.nro_solicitud = c.nro_solicitud 
+            and a.transaccion = b.transaccion
+            and a.transaccion = u.transaccion
+            and a.transaccion = g.transaccion
+            and r.rubro = g.rubro
+            and f.tipo_credito = t.tipo_credito 
+            and u.usuario = du.usuario
+            and b.anulada_sn = 'N' 
+            and b.fecha >=:wfecha_d
+            and b.fecha <=:wfecha_h
+            and a.nro_solicitud = f.nro_solicitud
+            and f.id_persona = d.id_persona
+            and d.id_persona = e.id_persona
+            and (f.cod_sucursal =:wcod_sucursal or :wcod_sucursal = 0 )
+            and (u.usuario =:usuario or :usuario = 'Todos' )
+order by cod_transaccion,b.fecha
+
+
+
+
+
+
+use efectivoclic
+select * from transacciones_cobranza where nro_solicitud = 6305
+select * from transacciones where transaccion = 42861
+select * from transacciones where transaccion = 42867
+select * from transacciones_cobranza where transaccion = 42861
+select * from transacciones_cobranza where transaccion = 42867
+select * from transacciones_cobranza_asignacion where transaccion = 42861
+select * from transacciones_cobranza_asignacion where transaccion = 42867
+select * from transacciones_debito where nro_solicitud = 6305
+select * from transacciones_debito_por_rubro where transaccion =  42860
+select * from transacciones_usuarios where transaccion in(42860,42861,42867)
+select * from cuotas_devengadas where nro_solicitud = 6305
+
+-- delete from transacciones where transaccion = 42861
+-- delete from transacciones where transaccion = 42867
+-- delete from transacciones where transaccion = 42860
+
+-- delete from transacciones_cobranza where transaccion = 42861
+-- delete from transacciones_cobranza where transaccion = 42867
+-
+-- delete from transacciones_cobranza_asignacion where transaccion = 42861
+-- delete from transacciones_cobranza_asignacion where transaccion = 42867
+
+-- delete from transacciones_debito where nro_solicitud = 6305
+-- delete from transacciones_Debito_por_rubro where transaccion = 42860
+-- delete from transacciones_usuarios where transaccion in(42860,42861,42867)
+
+
+-- delete from rubros_cuotas where nro_solicitud = 6305
+-- delete from cuotas where nro_solicitud =  6305
+-- delete from vales_observaciones where nro_solicitud =  6305
+-- delete from vales where nro_solicitud =  6305
+
+delete from movimitos_solicitudes  where nro_solicitud = 6305
+delete from solicitudes  where nro_solicitud = 6305
+
+
+/* pruebas mila */
+select * from transacciones_cobranza where transaccion = 60868
+select * from transacciones_cobranza_asignacion where transaccion = 60868
+select * from transacciones where transaccion = 60688
+select * from transacciones_usuarios where transaccion = 60688
+
+select * from transacciones_cobranza where transaccion = 64654
+select * from transacciones_cobranza_asignacion where transaccion = 64654
+select * from transacciones where transaccion = 64654
+select * from transacciones_usuarios where transaccion = 64654
+
+select * from rubros_cuotas where nro_solicitud = 2807
+select * from cuotas where nro_solicitud = 2807
+
+update rubros_cuotas set fecha_rubro_cuota = '20181007' where nro_solicitud = 2807 and nro_cuota = 14
+update cuotas set fecha_cuota_vale = '20180907' where nro_solicitud = 2807 and nro_cuota = 13
+
+/*prestacel cuando no manda los archivos de cobranza 1 y 2 */
+use prestacel
+
+exec sp_paso_vales_a_gestion
+exec sp_envio_mail_empresa_cobranza
+
+exec sp_genero_archivos_vales_gestion_cobranza2
+exec sp_envio_mail_empresa_cobranza2
+
+
+/* efectivo clic cuando no se envian los archivos de mora por antiguedad */
+use efectivoclic
+
+exec sp_genero_mora_por_antiguedad
+exec sp_envio_mail_mora_por_antiguedad
+
+
+/* mainaugroup cuando no corre el proceso de envio automatico de atrasos */
+use mainaugroup
+
+exec sp_genero_vales_con_atraso_diario
+exec sp_envio_mail_diario_mopc
+
+o bien
+
+
+select 
+pepe.nro_solicitud,
+pepe.cod_id,
+rtrim(pepe.nro_identificacion)+ ' - ' + dbo.Check_digit(pepe.NRO_IDENTIFICACION) AS nro_identificacion,
+p.Ape1, 
+p.Ape2,
+p.Nom1,
+p.Nom2,
+p.Calle,
+p.Nro_puerta, 
+p.Sub_puerta, 
+p.Referencia_domicilio, 
+p.Telefono, 
+p.Otro_telefono, 
+p.Celular, 
+p.Email,
+c.nombre as Ciudad, 
+d.NOMBRE AS Departamento,
+(SELECT     COALESCE (COUNT(*), 0) AS Expr1
+                            FROM          dbo.CUOTAS
+                            WHERE      (Fecha_Vencimiento < '20190226') AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) 
+                      AS Cantidad_cuotas_vencidas,
+(SELECT    COALESCE (COUNT(*), 0) AS Expr1
+    FROM   dbo.CUOTAS AS CUOTAS_5
+    WHERE  (Fecha_Vencimiento >= '20190226') AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) AS Cantidad_cuotas_avencer,
+(SELECT    COALESCE (SUM(round(Saldo_Cuota_Vale,3)), 0) AS Expr1
+    FROM   dbo.CUOTAS AS CUOTAS_4
+    WHERE  (Fecha_Vencimiento < '20190226') AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) AS Saldo_total_vencido,
+(SELECT    COALESCE (SUM(Saldo_Cuota_Vale), 0) AS Expr1
+    FROM   dbo.CUOTAS AS CUOTAS_3
+    WHERE  (Fecha_Vencimiento >= '20190226') AND (Nro_Solicitud = v.Nro_Solicitud) AND (Saldo_Cuota_Vale > 0.1)) AS Saldo_total_avencer,
+(SELECT    ROUND(COALESCE (SUM(Saldo_Cuota_Vale), 0), 2) AS Expr1
+    FROM dbo.CUOTAS AS CUOTAS_2
+    WHERE (Nro_Solicitud = v.Nro_Solicitud)) AS saldo_total_vale, v.Fecha_Saldo_Vale AS Fecha_ultimo_pago,
+Dias_atraso_vale,
+(SELECT  ISNULL(SUM(mora_cuota), 0) AS Expr1
+    FROM (SELECT     dbo.Fx_Calculo_Mora_Cuota(c.Nro_Solicitud, c.Nro_Cuota, c.Fecha_Vencimiento, SUM(r.Saldo_Rubro_Cuota)) AS Mora_cuota
+                                                    FROM          dbo.CUOTAS AS c INNER JOIN
+                                                                           dbo.RUBROS_CUOTAS AS r ON c.Nro_Solicitud = r.Nro_Solicitud AND c.Nro_Cuota = r.Nro_Cuota
+                                                    WHERE      (c.Fecha_Vencimiento < '20190226') AND (c.Nro_Solicitud = pepe.nro_solicitud) AND (c.Saldo_Cuota_Vale > 0.1) AND 
+                                                                           (r.Rubro IN ('500', '600'))
+                                                    GROUP BY c.Nro_Cuota, c.Nro_Solicitud, c.Fecha_Vencimiento) AS a_1) AS Total_mora,
+(SELECT     COALESCE (COUNT(*), 0) AS Expr1
+    FROM          dbo.PERSONAS_CLEARING
+    WHERE      (NRO_SOLICITUD = v.Nro_Solicitud)) AS En_clearing
+--into tmp_vales_con_atraso_diario	
+ from (
+select s.nro_solicitud, 
+s.id_persona,
+		v.nro_vale,
+		i.cod_id,
+		i.nro_identificacion AS nro_identificacion,
+		v.fecha_saldo_vale as fecha_ultimo_pago,
+		(select isnull(max(datediff(day,convert(datetime,substring(c.fecha_vencimiento,7,2)+'/'+substring(c.fecha_vencimiento,5,2)+'/'+substring(c.fecha_vencimiento,1,4)), CONVERT(char(8), GETDATE(), 112))),0) 
+					from cuotas c,rubros_cuotas r
+					where c.nro_solicitud = r.nro_solicitud
+					and c.nro_cuota = r.nro_cuota
+					and r.rubro = 500
+					and r.saldo_rubro_cuota > 0.1
+					and c.nro_solicitud = s.nro_solicitud ) as dias_atraso_vale 
+					
+from solicitudes s
+inner join identificaciones i on i.id_persona = s.id_persona
+inner join vales v on v.nro_solicitud = s.nro_solicitud
+where v.saldo_vale > 0.1 and s.seccion = 'DSMBLSDO' and
+		s.nro_solicitud not in ( select vgs.nro_solicitud from vales_gestion_cobranza vgs ) and
+		s.nro_solicitud not in ( select vgs2.nro_solicitud from vales_gestion_cobranza2 vgs2 ) 
+) pepe inner join 
+ dbo.IDENTIFICACIONES AS i ON i.ID_PERSONA = pepe.ID_PERSONA INNER JOIN
+                      dbo.PERSONAS AS p ON p.ID_PERSONA = pepe.ID_PERSONA INNER JOIN
+                      dbo.CIUDAD AS c ON c.ID_DEPARTAMENTO = p.ID_DEPARTAMENTO AND c.ID_CIUDAD = p.ID_CIUDAD INNER JOIN
+                      dbo.DEPARTAMENTO AS d ON p.ID_DEPARTAMENTO = d.ID_DEPARTAMENTO INNER JOIN
+                      dbo.VALES AS v ON v.Nro_Solicitud = pepe.NRO_SOLICITUD 
+
+where dias_atraso_vale >=1
+
+
+select t.transaccion, t.fecha, tc.nro_identificacion, cast(tc.monto as numeric(18,2)) as monto, v.nro_vale, v.nro_solicitud
+from transacciones_cobranza tc, transacciones t, vales v
+where t.transaccion = tc.transaccion and
+	tc.nro_solicitud = v.nro_solicitud and
+	anulada_sn = 'N' and
+	t.fecha = DATEADD(day, -1, '20190226')
+	order by t.fecha, t.hora
+***************************************************************************
+
+
+
+
+/*factura estres saber los documentos estan duplicados*/
+
+select documentoreceptor, count(*) from cabezaldocumentos where idemisor=2270 and fechaemision = '20190205' group by documentoreceptor having count(*) > 1
+
+------------------------------------------------
+
+
+/*mila*/
+select * from vales where nro_identificacion = '3171004'
+
+select * from transacciones_cobranza where  transaccion =62385
+
+select * from transacciones_cobranza_asignacion where transaccion =62385
+
+select * from rubros order by orden_imputacion_pagos
+
+recibo para probar
+
+
+
+/* prestacel casos que estaban en vgc1 y vgc3
+Julio, Inés, cómo están?
+Estamos viendo que en el historial de pagos de las empresas de cobranzas, hay pagos que superponen en la empresa 1 y la empresa 3, cuando estos ya habían sido devueltos por la uno y asignados a latres.
+Les paso tres casos que ncontré de enero.
+
+4615290
+3825762
+5109689
+
+Tendrían que haber aparecido en el historico de cobranza 3.
+El ultimo pago entró hoy. Si se puede arreglar hoy mismo para que la empresa 1 no le llegur en el mail automatico el pago que no le corresponde mejor.
+Saludos,
+Alejandro.
+*/
+
+select t.fecha, tc.nro_identificacion, cast(tc.monto as numeric(18,2)) as monto, v.nro_vale
+from vales_gestion_cobranza vgc, vales v, transacciones_cobranza tc, transacciones t
+where tc.nro_solicitud = vgc.nro_solicitud
+	and v.nro_solicitud = vgc.nro_solicitud
+	and t.transaccion = tc.transaccion
+	and t.fecha >= vgc.fecha_enviado
+	and anulada_sn = 'N'
+	and vgc.enviado_sn = 'S'
+order by t.fecha
+
+select * from vales where nro_identificacion = '5109689'
+select * from vales_gestion_cobranza where nro_solicitud =5287
+select * from vales_gestion_cobranza3 where nro_solicitud =5287
+
+
+select * from vales_gestion_cobranza a, vales_gestion_cobranza3 b 
+where a.nro_solicitud = b.nro_solicitud
+
+select nro_solicitud from v_vales_dias_atraso where nro_solicitud not in (select nro_solicitud from vales_gestion_cobranza2)
+and nro_solicitud not in (select nro_solicitud from vales_gestion_cobranza3)
+and dias_atraso_vale = 20 
+ 
+
+
+
+
+---------- informe de seguro mainaugroup
+use mainaugroup
+
+SELECT  p.ape1,
+			p.NOM1,
+			p.FECHA_NACIMIENTO,
+             v.cod_identificacion,
+             v.nro_identificacion,
+             dbo.Check_digit(v.nro_identificacion) as digito,
+			 m.nro_solicitud,
+             round(ISNULL(SUM(debito) - SUM(credito), 0),3) as saldo_capital,
+             round(isnull((SUM(debito) - SUM(credito)) * v.porcentaje_seguro / 100 ,0),3) as seguro
+      FROM   v_movtos_Contables m,
+             solicitudes s,
+             vales v,
+             personas p,
+             Autorizacion_Desembolso a
+      WHERE  p.ID_PERSONA = s.ID_PERSONA
+			 AND s.nro_solicitud = a.Nro_Solicitud
+			 AND a.Fecha_Desembolso <= 'xxxxxxxxx'
+             AND m.rubro = 500
+             AND m.nro_solicitud = s.nro_solicitud
+             AND v.nro_solicitud = s.nro_solicitud
+             AND dbo.dias_atraso_new(s.nro_solicitud,'xxxxxxxx') <= 120
+             AND v.porcentaje_seguro > 0
+             AND s.SECCION = 'dsmblsdo'                  
+GROUP BY
+ 			p.ape1,
+			p.NOM1,
+			p.FECHA_NACIMIENTO,
+             v.cod_identificacion,
+             v.nro_identificacion,
+             m.nro_solicitud,
+             v.porcentaje_seguro
+      having (SUM(debito) - SUM(credito)) > 1
+      order by m.nro_solicitud
+
+----------------------------------------------------------
+
+
+
+
+select * from rubros_cuotas where nro_solicitud = 2701 and nro_cuota = 12
+select * from transacciones_cobranza_asignacion where transaccion = 63009
+select * from transacciones_cobranza where transaccion = 63009
+select * from cuotas where nro_solicitud = 2701 and nro_cuota = 12
+
+
+select * from transacciones_cobranza where transaccion in(62149,63009)
+select * from transacciones_cobranza_asignacion where transaccion in(62149,63009)
+
+  SELECT rubros_cuotas.rubro,   
+         rubros_cuotas.sub_rubro,   
+         rubros.den_rubro,   
+         rubros_cuotas.valor_rubro,   
+         rubros_cuotas.fecha_rubro_cuota,   
+         rubros_cuotas.saldo_rubro_cuota  
+    FROM rubros_cuotas,   
+         rubros,
+         transacciones_cobranza
+   WHERE  rubros_cuotas.rubro = rubros.rubro  and  
+          rubros_cuotas.sub_rubro = rubros.sub_rubro and
+         rubros_cuotas.nro_solicitud = transacciones_cobranza.nro_solicitud
+         transacciones_cobranza.nro_solicitud = 2701) AND  
+         ( rubros_cuotas.nro_cuota = 12 ) )   
+ORDER BY rubros.orden_imputacion_pagos ASC   
+
+
+  SELECT *
+    FROM v_consulta_pagos_cuota  
+   WHERE ( v_consulta_pagos_cuota.nro_solicitud = 2701 ) AND  
+         ( v_consulta_pagos_cuota.nro_cuota = 12 )    
+
+
+select * from cuotas where nro_solicitud = 2966
+select * from transacciones where transaccion = 60946
+update transacciones set fecha = '20181221' where transaccion = 60946
+update cuotas set fecha_cuota_vale ='20181221' where nro_solicitud = 2966 and nro_cuota = 7
+
+---------------
+
+vales general generarlo cuando piden
+
+
+SELECT dbo.VALES.nro_vale,
+    dbo.VALES.Cod_Identificacion,
+    dbo.VALES.Nro_Identificacion,
+    (SELECT     ISNULL(LTRIM(RTRIM(a.NOM1)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS primer_nombre,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.NOM2)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS segundo_nombre,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.APE1)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS primer_apellido,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.APE2)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS segundo_apellido,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.CALLE)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS calle,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.NRO_PUERTA)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS puerta,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.SUB_PUERTA)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS sub_puerta,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.CELULAR)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS celular,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.EMAIL)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS email,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.TELEFONO)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS telefono,
+    (select descripcion from tipo_credito where tipo_credito = dbo.SOLICITUDES.tipo_credito) as tipo_de_credito,
+    dbo.VALES.Capital,
+    dbo.VALES.Cuotas,
+    dbo.VALES.Fecha_Genera_Vale,    
+    (SELECT     Fecha_Vencimiento
+    FROM          dbo.CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Nro_Cuota = 1)) AS vto_primera_cuota,
+    (SELECT     MAX(Fecha_Vencimiento) AS Expr1
+    FROM          dbo.CUOTAS AS CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud)) AS vencimiento_ultima_cuota,
+    CAST(dbo.VALES.Valor_Tasa_Anual AS numeric(18, 2)) AS Valor_Tasa_Anual,   
+    CAST(dbo.VALES.Valor_Tasa_Mensual AS numeric(18, 2)) AS valor_tasa_mensual,
+    dbo.VALES.Porcentaje_Seguro,
+    dbo.VALES.Fecha_Saldo_Vale,
+    dbo.VALES.Saldo_Vale,
+  (SELECT     SUM(Monto_Cuota) AS Expr1
+    FROM          dbo.CUOTAS AS CUOTAS_4
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud)) AS monto_total_a_pagar,
+  (SELECT     Monto_Cuota
+    FROM          dbo.CUOTAS AS CUOTAS_3
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Nro_Cuota = 1)) AS monto_cuota,
+    (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 500)) AS Capital,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 600)) AS Intereses,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_3
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 700)) AS Iva,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_2
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 800)) AS Gastos,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 980)) AS Redondeo,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 900)) AS Seguro,
+    (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 500)) AS Capital_saldo,
+    (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 600)) AS Intereses_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_3
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 700)) AS Iva_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_2
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 800)) AS Gastos_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 980)) AS Redondeo_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 900)) AS Seguro_saldo,
+          (select min(nro_cuota) AS Expr1                                                         
+    from dbo.cuotas  AS CUOTAS_1                                                                  
+    where (nro_solicitud = dbo.vales.nro_solicitud) and (saldo_cuota_vale > 0.5)) AS cuota_impaga ,
+      (select min(fecha_vencimiento) AS Expr1                                                         
+    from dbo.cuotas  AS CUOTAS_1                                                                  
+    where (nro_solicitud = dbo.vales.nro_solicitud) and (saldo_cuota_vale > 0.5)) AS fecha_cuota_impaga ,
+    --(select dbo.Dias_Atraso_Vale(dbo.vales.nro_solicitud,CONVERT(varchar(8), getdate(), 112))) as dias_atraso,
+    (select dbo.Dias_Atraso_Vale(dbo.vales.nro_solicitud,'xxxxxxxx')) as dias_atraso,
+    isnull(dbo.SOLICITUDES.MONTO_SOLICITUD_CANCELA,0) as monto_solicitud_cancela, 
+    --dbo.VALES.Gastos_Desembolso, -- cargo por otorgamiento sin iva
+    dbo.VALES.usuario,
+    dbo.VALES.cod_fondeo,
+  (SELECT     CAST(tasa_mora AS numeric(18, 2)) AS Expr1
+    FROM          dbo.Tasas AS Tasas_1
+    WHERE      (COD_FONDEO = dbo.VALES.cod_fondeo)) AS tasa_mora_anual,
+  (select count(nro_solicitud) as expr1
+    from vales_gestion_cobranza as vgc1
+    where (nro_solicitud = dbo.vales.nro_solicitud)) as en_vgc,
+     (select count(nro_solicitud) as expr1
+    from personas_clearing as pc1
+    where (nro_solicitud = dbo.vales.nro_solicitud)) as en_clearing
+FROM dbo.VALES INNER JOIN     dbo.SOLICITUDES ON dbo.VALES.Nro_Solicitud = dbo.SOLICITUDES.NRO_SOLICITUD
+    and dbo.solicitudes.seccion = 'DSMBLSDO'
+    --(and dbo.vales.saldo_vale > 0 or 0 = 0)
+
+
+
+----------------------------------------------
+
+
+use seguridad_prestacel
+SELECT * FROM USUARIOS
+select * from menu_nivel1 where aplicacion = 'informes_Desktop'
+select * from menu_nivel2_grupos where aplicacion = 'informes_Desktop'
+insert into menu_nivel2_grupos values('informes_desktop','wprincipal_informes_desktop','menu_informes','Vales_Rubros','Planilla de vales','ADMINISTRADOR')
+insert into menu_nivel2_grupos values('informes_desktop','wprincipal_informes_desktop','menu_informes','Vales_Rubros','Planilla de vales','AUXILIAR')
+insert into menu_nivel2_grupos values('informes_desktop','wprincipal_informes_desktop','menu_informes','Vales_Rubros','Vales Valores por Rubro','ADMINISTRADOR')
+insert into menu_nivel2_grupos values('informes_desktop','wprincipal_informes_desktop','menu_informes','Vales_Rubros','Vales Valores por Rubro','AUXILIAR')
+
+use seguridad_mainaugroup
+select * from menu_nivel2 where aplicacion = 'vales' and desc1 = 'vales' order by nivel2
+insert into menu_nivel2 values('vales','w_principal_vale','menu_vales','Vales','Confirmación Desembolso',2,10)
+insert into menu_nivel2 values('vales','w_principal_vale','menu_vales','Vales','Anulación Confirmación Desembolso',2,12)
+select * from menu_nivel2_grupos where aplicacion = 'vales' and desc1 = 'vales' order by desc2
+insert into menu_nivel2_grupos values('vales','w_principal_vale','menu_vales','Vales','Confirmación Desembolso','ADMINISTRADOR')
+insert into menu_nivel2_grupos values('vales','w_principal_vale','menu_vales','Vales','Anulación Confirmación Desembolso','ADMINISTRADOR')
+
+
+--  query para cambiar el dia y el mes del vencimiento  ------ AGUSTINA ----------------------
+select * from identificaciones where nro_identificacion = '1139468'
+select * from solicitudes where id_persona = 20464
+select * from vales where nro_solicitud = 38584
+select * from cuotas where nro_solicitud = 38584
+update cuotas set fecha_vencimiento = '20200105' where nro_solicitud = 38584 and nro_cuota = 1
+update cuotas set fecha_vencimiento = '20200205' where nro_solicitud = 38584 and nro_cuota = 2
+update cuotas set fecha_vencimiento = '20200305' where nro_solicitud = 38584 and nro_cuota = 3
+update cuotas set fecha_vencimiento = '20200405' where nro_solicitud = 38584 and nro_cuota = 4
+update cuotas set fecha_vencimiento = '20200505' where nro_solicitud = 38584 and nro_cuota = 5
+update cuotas set fecha_vencimiento = '20200605' where nro_solicitud = 38584 and nro_cuota = 6
+update cuotas set fecha_vencimiento = '20200705' where nro_solicitud = 38584 and nro_cuota = 7
+update cuotas set fecha_vencimiento = '20200805' where nro_solicitud = 38584 and nro_cuota = 8
+update cuotas set fecha_vencimiento = '20200905' where nro_solicitud = 38584 and nro_cuota = 9
+update cuotas set fecha_vencimiento = '20201005' where nro_solicitud = 38584 and nro_cuota = 10
+update cuotas set fecha_vencimiento = '20201105' where nro_solicitud = 38584 and nro_cuota = 11
+update cuotas set fecha_vencimiento = '20201205' where nro_solicitud = 38584 and nro_cuota = 12
+
+
+vista v_valor_rubro_cuota nueva
+
+SELECT     a.Nro_Solicitud, a.Nro_Cuota, a.Monto_Cuota, a.Fecha_Vencimiento,                                                                                               
+                          (SELECT     Valor_Rubro                                                                                                                          
+                            FROM          dbo.RUBROS_CUOTAS AS rc                                                                                                          
+                            WHERE      (a.Nro_Solicitud = Nro_Solicitud) AND (a.Nro_Cuota = Nro_Cuota) AND (Rubro = '500')) AS monto_capital,                              
+                          (SELECT     Valor_Rubro                                                                                                                          
+                            FROM          dbo.RUBROS_CUOTAS AS rc                                                                                                          
+                            WHERE      (a.Nro_Solicitud = Nro_Solicitud) AND (a.Nro_Cuota = Nro_Cuota) AND (Rubro = '600')) AS monto_interes,                              
+                          (SELECT     Valor_Rubro                                                                                                                          
+                            FROM          dbo.RUBROS_CUOTAS AS rc                                                                                                          
+                            WHERE      (a.Nro_Solicitud = Nro_Solicitud) AND (a.Nro_Cuota = Nro_Cuota) AND (Rubro = '700')) AS monto_iva, v.cod_fondeo, tc.porc_pronto_pago
+FROM         dbo.CUOTAS AS a INNER JOIN                                                                                                                                    
+                      dbo.VALES AS v ON a.Nro_Solicitud = v.Nro_Solicitud INNER JOIN                                                                                       
+                      dbo.Tasas AS t ON v.cod_fondeo = t.COD_FONDEO inner join solicitudes s on s.nro_solicitud = v.nro_solicitud                                          
+                      inner join tipo_credito tc on tc.tipo_credito = s.tipo_credito                                                                                       
+                      where a.nro_solicitud = 3483                
+                      
+
+                                        vista v_valor_rubro_cuota vieja                                                                                                                                                                                                                                           
+                                                                                                                                                    
+SELECT     a.Nro_Solicitud, a.Nro_Cuota, a.Monto_Cuota, a.Fecha_Vencimiento,                                                                                              
+                          (SELECT     Valor_Rubro                                                                                                                         
+                            FROM          dbo.RUBROS_CUOTAS AS rc                                                                                                         
+                            WHERE      (a.Nro_Solicitud = Nro_Solicitud) AND (a.Nro_Cuota = Nro_Cuota) AND (Rubro = '500')) AS monto_capital,                             
+                          (SELECT     Valor_Rubro                                                                                                                         
+                            FROM          dbo.RUBROS_CUOTAS AS rc                                                                                                         
+                            WHERE      (a.Nro_Solicitud = Nro_Solicitud) AND (a.Nro_Cuota = Nro_Cuota) AND (Rubro = '600')) AS monto_interes,                             
+                          (SELECT     Valor_Rubro                                                                                                                         
+                            FROM          dbo.RUBROS_CUOTAS AS rc                                                                                                         
+                            WHERE      (a.Nro_Solicitud = Nro_Solicitud) AND (a.Nro_Cuota = Nro_Cuota) AND (Rubro = '700')) AS monto_iva, v.cod_fondeo, t.porc_pronto_pago
+FROM         dbo.CUOTAS AS a INNER JOIN                                                                                                                                   
+                      dbo.VALES AS v ON a.Nro_Solicitud = v.Nro_Solicitud INNER JOIN                                                                                      
+                      dbo.Tasas AS t ON v.cod_fondeo = t.COD_FONDEO 
+
+
+                                -----
+
+
+select  * from dbo.Dominios_Usuarios
+select  transaccion, count(*) from control_numeracion_comprobante
+group by transaccion
+having count(*) > 1
+
+
+informe nuevo con transacciones asociadas a los preimpresos
+select b.fecha, 
+		a.transaccion,
+		b.cod_transaccion, 
+		a.cod_identificacion, 
+		a.nro_identificacion,
+		a.nro_solicitud, 
+		c.nro_Vale, 
+		round(a.monto,2) as monto,	
+		a.cancela_sn , 
+		e.nom1, 
+		e.nom2,
+		e.ape1, 
+		e.ape2,
+		f.nuevo_renova,
+	    f.cod_Sucursal,
+		s.detalle,
+		g.usuario,
+		case  b.cod_transaccion 
+		when '01' then round(a.monto,2) 
+		when '15' then round(a.monto * -1,2)
+		when '20' then round(a.monto * -1,2)
+		end as acumulado,
+		isnull(x.serie,'') as serie_comprobante,
+		isnull(x.numero,0) as numero_comprobante
+from    transacciones_cobranza a left join  control_numeracion_comprobante x on a.transaccion = x.transaccion,
+ transacciones b, vales c , identificaciones d, personas e, solicitudes f, transacciones_usuarios g, sucursales s
+where a.transaccion = b.transaccion 
+		and a.nro_solicitud = c.nro_solicitud 
+		and a.transaccion = b.transaccion
+		and a.transaccion = g.transaccion
+		and b.anulada_sn = 'N' 
+		and f.cod_sucursal = s.cod_sucursal
+		and b.fecha >= '20190101'
+		and b.fecha <= '20190114'
+		and a.nro_solicitud = f.nro_solicitud
+		and f.id_persona = d.id_persona
+		and d.id_persona = e.id_persona
+		and (f.cod_sucursal =2 )
+		--and (g.usuario = :wusuario or   :wusuario =  'xx'  )
+order by b.fecha;
+
+---------------------
+antiguo informe
+---------------------------
+		select b.fecha, 
+		a.transaccion,
+		b.cod_transaccion, 
+		a.cod_identificacion, 
+		a.nro_identificacion,
+		a.nro_solicitud, 
+		c.nro_Vale, 
+		round(a.monto,2) as monto,	
+		a.cancela_sn , 
+		e.nom1, 
+		e.nom2,
+		e.ape1, 
+		e.ape2,
+		f.nuevo_renova,
+	    f.cod_Sucursal,
+		s.detalle,
+		g.usuario,
+		case  b.cod_transaccion 
+		when '01' then round(a.monto,2) 
+		when '15' then round(a.monto * -1,2)
+		when '20' then round(a.monto * -1,2)
+		end as acumulado,
+		(select isnull(x.serie+ cast(x.numero as varchar(12)),'') from control_numeracion_comprobante x where x.transaccion <> 0, and x.transaccion = a.transaccion) pepe
+from    transacciones_cobranza a , transacciones b, vales c , identificaciones d, personas e, solicitudes f, transacciones_usuarios g, sucursales s
+
+where a.transaccion = b.transaccion 
+		and a.nro_solicitud = c.nro_solicitud 
+		and a.transaccion = b.transaccion
+		and a.transaccion = g.transaccion
+		and b.anulada_sn = 'N' 
+		and f.cod_sucursal = s.cod_sucursal
+		and b.fecha >= '20190101'
+		and b.fecha <= '20190114'
+		and a.nro_solicitud = f.nro_solicitud
+		and f.id_persona = d.id_persona
+		and d.id_persona = e.id_persona
+		and (f.cod_sucursal =2 )
+		--and (g.usuario = :wusuario or   :wusuario =  'xx'  )
+order by b.fecha;
+
+
+
+
+reporte Informe vales general
+
+SELECT dbo.VALES.nro_vale,
+	dbo.VALES.Cod_Identificacion, 
+	dbo.VALES.Nro_Identificacion, 
+	(SELECT     ISNULL(LTRIM(RTRIM(a.NOM1)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS primer_nombre,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.NOM2)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS segundo_nombre,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.APE1)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS primer_apellido,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.APE2)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS segundo_apellido,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.CALLE)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS calle,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.NRO_PUERTA)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS puerta,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.SUB_PUERTA)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS sub_puerta,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.CELULAR)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS celular,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.EMAIL)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS email,
+  (SELECT     ISNULL(LTRIM(RTRIM(a.TELEFONO)), '') AS Expr1
+    FROM          dbo.PERSONAS AS a INNER JOIN
+                           dbo.SOLICITUDES AS b ON a.ID_PERSONA = b.ID_PERSONA
+    WHERE      (b.NRO_SOLICITUD = dbo.VALES.Nro_Solicitud)) AS telefono, 
+    (select descripcion from tipo_credito where tipo_credito = dbo.SOLICITUDES.tipo_credito) as tipo_de_credito, 
+	dbo.VALES.Capital, 
+	dbo.VALES.Cuotas, 
+	dbo.VALES.Fecha_Genera_Vale, 	
+	(SELECT     Fecha_Vencimiento
+    FROM          dbo.CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Nro_Cuota = 1)) AS vto_primera_cuota, 
+	(SELECT     MAX(Fecha_Vencimiento) AS Expr1
+    FROM          dbo.CUOTAS AS CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud)) AS vencimiento_ultima_cuota,
+	CAST(dbo.VALES.Valor_Tasa_Anual AS numeric(18, 2)) AS Valor_Tasa_Anual,    
+	CAST(dbo.VALES.Valor_Tasa_Mensual AS numeric(18, 2)) AS valor_tasa_mensual, 
+	dbo.VALES.Porcentaje_Seguro, 
+	dbo.VALES.Fecha_Saldo_Vale, 
+	dbo.VALES.Saldo_Vale,
+  (SELECT     SUM(Monto_Cuota) AS Expr1
+	FROM          dbo.CUOTAS AS CUOTAS_4
+	WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud)) AS monto_total_a_pagar,
+  (SELECT     Monto_Cuota
+    FROM          dbo.CUOTAS AS CUOTAS_3
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Nro_Cuota = 1)) AS monto_cuota,
+    (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 500)) AS Capital,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 600)) AS Intereses,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_3
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 700)) AS Iva,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_2
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 800)) AS Gastos,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 980)) AS Redondeo,
+  (SELECT     SUM(Valor_Rubro) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 900)) AS Seguro,
+    (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 500)) AS Capital_saldo,
+    (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 600)) AS Intereses_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_3
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 700)) AS Iva_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_2
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 800)) AS Gastos_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 980)) AS Redondeo_saldo,
+  (SELECT     SUM(saldo_rubro_cuota) AS Expr1
+    FROM          dbo.RUBROS_CUOTAS AS RUBROS_CUOTAS_1
+    WHERE      (Nro_Solicitud = dbo.VALES.Nro_Solicitud) AND (Rubro = 900)) AS Seguro_saldo,
+    isnull(dbo.SOLICITUDES.MONTO_SOLICITUD_CANCELA,0) as monto_solicitud_cancela,  
+    --dbo.VALES.Gastos_Desembolso, -- cargo por otorgamiento sin iva
+    dbo.VALES.usuario, 
+    dbo.VALES.cod_fondeo,
+  (SELECT     CAST(tasa_mora AS numeric(18, 2)) AS Expr1
+    FROM          dbo.Tasas AS Tasas_1
+    WHERE      (COD_FONDEO = dbo.VALES.cod_fondeo)) AS tasa_mora_anual
+FROM dbo.VALES INNER JOIN 	dbo.SOLICITUDES ON dbo.VALES.Nro_Solicitud = dbo.SOLICITUDES.NRO_SOLICITUD
+	and dbo.solicitudes.seccion = 'DSMBLSDO' 
+	--(and dbo.vales.saldo_vale > 0 or 0 = 0)
+
+
+
+
+informe de rubros por vale
+use prestacel
+
+select c.nro_solicitud,c.nro_cuota, c.monto_cuota , c.fecha_vencimiento,round(saldo_cuota_vale,2),
+rc.rubro,rc.valor_rubro,rc.saldo_rubro_cuota,rc.fecha_rubro_cuota
+from cuotas c, rubros_cuotas rc
+where c.nro_solicitud = rc.nro_solicitud
+and c.nro_cuota = rc.nro_cuota
+ order by c.nro_solicitud, c.nro_cuota
+
+-----------------------------------------------------------------
+Buenas tardes:
+ 
+Intenté comunicarme con Arya, pero está toda la semana de vacaciones y creo que lo mejor es que yo les explique nuevamente cómo entiendo que el sistema de Cabal calcula.
+Por qué en el sistema de Cabal les da $ 20866.45? Esto es por lo que les digo de que es la misma lógica de cálculo: Si un cliente quiere renovar un crédito, entonces el sistema toma todo lo que debe a esa fecha, y si tiene cuotas no vencidas, entonces le perdona los intereses futuros (misma lógica como les decía que la refinanciación). Entonces las chicas hacen un ajuste por la diferencia (que hoy en día es manual y la idea es que lo haga el sistema) y se le da el nuevo crédito, teniendo en cuenta que se le entrega solamente la diferencia de dinero.
+
+Ejemplo sencillo:
+
+Un cliente “X” tiene un crédito con MILA y debe 5 cuotas de $ 2000 total $ 10000. Viene que quiere renovarlo y llevarse en la mano $ 12.000. Si se cumplen las condiciones de que no esté atrasado y que haya pago la mitad + 1 de las cuotas, entonces vamos al sistema y le pedimos el monto para refinanciar (le pedimos ese monto porque no da un monto para renovar y el calculo es el mismo); suponiendo que el sistema nos tira $ 8000 porque cuando lo calcula le resta los intereses y cargos futuros de cuotas no vencidas, entonces le da eso, los $ 8.000.  Ahí las chicas entonces hacen un nuevo crédito (la renovación) por $ 20.000 porque el Sr. Se quiere llevar $ 12.000 en la mano y los $ 8.000 que nos dio el cálculo hay que descontárselo. Se lleva $ 12.000 pero firma un vale por $ 20.000, porque los $ 8.000 son el saldo de la deuda del vale anterior.
+¿La renovación está dando menor que la cancelación anticipada?. Si claro, porque la cancelación anticipada tiene el “cargo por cancelación anticipada”, que, como su nombre lo dice, es un cargo solo para eso. Ese cargo se cobra por lucro cesante, nosotros perdemos de cobrar intereses porque quiere cancelar el crédito antes, entonces se le descuentan los intereses futuros pero se le penaliza con ese cargo.
+
+Renovación y cancelación anticipada son dos cosas diferentes.
+
+En la Renovación el cliente quiere más crédito, en la Cancelación anticipada quiere eso, terminar el crédito.
+
+
+
+
+---------- MILA NUEVOS PRODUCTOS
+
+use mila
+select * from tasas
+
+select * from tipo_credito
+
+INSERT INTO TIPO_CREDITO VALUES(6,'PMO. GENERAL','Mila',0,'N')
+INSERT INTO TIPO_CREDITO VALUES(7,'Refinanciacion General','Mila',0,'N')
+INSERT INTO TIPO_CREDITO VALUES(8,'Refinanciacion Tasa 0','Mila',0,'N')
+INSERT INTO TIPO_CREDITO VALUES(9,'Prestamos anteriores','Mila',0,'N')
+
+
+select a.tipo_credito , b.porc_pronto_pago from solicitudes a, tipo_credito b
+ where a.tipo_credito = b.tipo_credito
+ and nro_solicitud = 25
+ 
+
+------------------ mainaugroup para saber los rubros que participaron en las Cancelaciones Anticipadas
+
+select * from transacciones a, transacciones_cobranza_asignacion b , transacciones_cobranza c
+where a.transaccion = b.transaccion 
+and a.transaccion = c.transaccion
+and a.fecha >'20181101' 
+and a.fecha <'20181201' 
+and b.nro_cuota = 0
+and b.transaccion = 14458
+
+
+select * from rubros_cuotas where nro_solicitud = 1744 and nro_cuota in(6,7,8)
+
+-- noviembre
+select * from transacciones_cobranza_Asignacion where transaccion =10855
+select * from transacciones_debito_por_rubro where transaccion =10855
+select sum (valor_rubro) as '600 inteseres' from rubros_cuotas where nro_solicitud = 1744 and rubro = '600' and nro_cuota in(6,7,8)
+select sum (valor_rubro) as '700 IVA' from rubros_cuotas where nro_solicitud = 1744 and rubro = '700' and nro_cuota in(6,7,8)
+select sum (valor_rubro) as '800 Gastos' from rubros_cuotas where nro_solicitud = 1744 and rubro = '800' and nro_cuota in(6,7,8)
+select sum (valor_rubro) as '900 Seguro'from rubros_cuotas where nro_solicitud = 1744 and rubro = '900' and nro_cuota in(6,7,8)
+
+select * from rubros_cuotas where nro_solicitud = 1390 
+-- diciembre
+select * from transacciones_cobranza_Asignacion where transaccion =14458
+select * from transacciones_debito_por_rubro where transaccion =14458
+select sum (valor_rubro) from rubros_cuotas where nro_solicitud = 1390 and rubro = '600' and nro_cuota in(7,8,9,10,11,12) 
+select sum (valor_rubro) from rubros_cuotas where nro_solicitud = 1390 and rubro = '700' and nro_cuota in(7,8,9,10,11,12) 
+select sum (valor_rubro) from rubros_cuotas where nro_solicitud = 1390 and rubro = '800' and nro_cuota in(7,8,9,10,11,12) 
+select sum (valor_rubro) from rubros_cuotas where nro_solicitud = 1390 and rubro = '900' and nro_cuota in(7,8,9,10,11,12) 
+
+/***//
+
+
+select * from cuotas
+select * from transacciones where transaccion = 517
+select * from transacciones where transaccion = 518
+select * from transacciones_cobranza where nro_solicitud =168
+
+select * from transacciones_cobranza_asignacion where transaccion = 526--1922-836.36=1085.64
+select * from transacciones_cobranza_asignacion where transaccion = 527--
+select * from transacciones_cobranza_asignacion where transaccion = 528--1085.64-104.29=981.35
+
+select * from rubros_cuotas where nro_solicitud = 151 and nro_cuota = 1
+select * from cuotas where nro_solicitud = 151 and nro_cuota = 1
+
+----------------------------------------------
+
+select * from documentos_factura_express where 
+
+select * from emision where aaaamm = '201812' and forma_pago = 2
+and id_documento in (select id_documento from documentos_factura_express) and id_contrato = 28
+
+select * from documentos_factura_express where id_documento = 87234
+--delete from documentos_factura_express where id_documento = 87234
+
+delete from documentos_factura_express where id_documento  
+in (select id_documento from emision where aaaamm = '201812' and forma_pago = 2 and id_documento <> 87234 )
+
+
+select * from documentos_factura_express where id_documento  
+in (select id_documento from emision where aaaamm = '201812' and forma_pago = 2 and id_documento <> 87234 )
+
+
+
+select * from clientes where razon_social like '%asisper%'
+select * from contratos_venta where id_cliente = 502025 -- 28
+
+
+------------------- informe de operaciones que le mandamos a lucia
+
+
+select * from (
+	select a.nro_operacion,id_fideicomiso, 
+		nro_preembarque, 
+		tipo_operacion, 
+		fecha, 
+		hora, 
+		guia, 
+		fecha_guia, 
+		dicose_a, 
+		dicose_b, 
+		dicose_c, 
+		dicose_d, 
+		usuario, 
+		chequeo_guia,
+	   (select count(b.codigo_caravana) 
+		from operacion_renglon_caravana b
+		where a.nro_operacion = b.nro_operacion  ) as cantidad_caravana,
+		observacion
+from operacion a) pepe
+	  where cantidad_caravana > 0
+	  and fecha >= '20170101'
+	  order by fecha
+
+
+
+
+insert into tipo_credito values (3 , 'Mayores 75')
+insert into tipo_credito values (4 , 'General Bonificado')
+
+DELETE FROM TIPO_CREDITO WHERE TIPO_CREDITO = 3
+insert into tipo_credito values (5 , 'General Hasta 2 Cuotas')
+select distinct(tipo_credito) from solicitudes
+
+tasas para mila en desarrollo
+
+insert into tasas values(110, 0, 0.6, 0, 40, 8, 3.8566, 110, 110, 9.16, 9.16,	110, 110,	9.16,	9.16,	'Mayor75', 5)
+insert into tasas values(100, 0, 0.6, 0, 40, 8, 3.8566, 110, 100, 8.33, 8.33,	100, 100,	8.33,	8.33,	'Refinancia', 5)
+insert into tasas values(90, 0, 0.6, 0, 40, 8, 3.8566, 110, 90, 9.16, 9.16,	90, 90,	7.5,	7.5,	'Gral_Bonif', 3)
+insert into tasas values(80, 0, 0.6, 0, 40, 8, 3.8566, 110, 80, 6.66, 6.66,	80, 80,	6.66,	6.66,	'Gral_2Cuot', 0)
+--------------------------- para que tenga las opciones del menu ----------------------
+
+insert into menu_nivel2 values ('vales','w_principal_vale','menu_vales','Vales','Confirmación Desembolso',2,	9)
+insert into menu_nivel2 values ('vales','w_principal_vale','menu_vales','Vales','Anulación Confirmación Desembolso',2	,10)
+insert into menu_nivel2_grupos values ('vales','w_principal_vale','menu_vales','Vales','Anulación Confirmación Desembolso','ADMINISTRADOR ') 
+insert into menu_nivel2_grupos values ('vales','w_principal_vale ','menu_vales','Vales','Confirmación Desembolso','ADMINISTRADOR')
+
+
+--------------------------- efectivoclic------------------
+
+insert into tipo_credito values(2,'Tienda')
+
+
+-------------------------------- mainaugroup 
+
+select * from transacciones_Debito_por_rubro where transaccion = 4734
+select * from transacciones_Debito_por_rubro where transaccion = 4734 and rubro = 600 and monto < 506 and nro_cuota = 0
+select * from transacciones_cobranza_asignacion where transaccion = 4734
+
+ update transacciones_debito_por_rubro set monto = 469.36 where transaccion = 4734 and rubro = 600 and monto < 506 and nro_cuota = 0
+
+--------------------------- facturacion sucred -------------------
+
+select b.nro_solicitud,
+       v.nro_vale,
+       a.fecha,
+       p.ape1,
+       p.ape2,
+       p.nom1,
+       c.rubro,
+       c.sub_rubro,
+       r.den_rubro,
+       sum(case  c.rubro when '400' then c.monto/(1+(22 /100)) when '410' then c.monto/(1+(22 /100)) else c.monto end) as monto,
+	  a.cod_transaccion
+from transacciones a,
+     transacciones_debito b,
+     transacciones_debito_por_rubro c,
+     vales v,
+     solicitudes s,
+     personas p,
+     rubros r
+where a.transaccion = b.transaccion and 
+      b.transaccion = c.transaccion and
+      substring(a.fecha,1,6) = '201809' and
+      a.anulada_sn = 'N' and
+      c.monto > 0.1 and c.rubro not in ('500','700') and
+      b.nro_solicitud = s.nro_solicitud and
+      b.nro_solicitud = v.nro_solicitud and
+      s.id_persona = p.id_persona and
+      c.rubro = r.rubro and
+      c.sub_Rubro = r.sub_rubro and
+      s.seccion = 'DSMBLSDO'	 and 
+      b.nro_cuota <> 0
+group by b.nro_solicitud,v.nro_vale,a.fecha,p.ape1,p.ape2,p.nom1,c.rubro,c.sub_rubro,r.den_rubro,a.cod_transaccion
+
+union all
+
+-- cancelaciones anticipadas
+
+SELECT b.nro_solicitud,
+       v.nro_vale,
+       a.fecha,
+       p.ape1,
+       p.ape2,
+       p.nom1,
+       c.rubro,
+       c.sub_rubro,
+       r.den_rubro,
+       sum(case  c.rubro when '400' then c.monto/1.22 else c.monto end) as monto,
+       cod_transaccion
+	  -- (case a.cod_transaccion when '01' then 'Factura' when '11' then 'Factura' when '15' then 'Nota de Credito' else ' ' end)  as tipo_transaccion
+from transacciones a,  
+     transacciones_debito b,
+     solicitudes s,
+     transacciones_cobranza_asignacion c,
+     vales v,
+     personas p,
+     rubros r,
+     cuotas
+where a.transaccion = b.transaccion and
+      b.transaccion = c.transaccion and
+      substring(a.fecha,1,6) = '201809'  and
+      a.anulada_sn = 'N' and
+      c.monto > 0.1 and c.rubro not in ('500','700') and
+      b.nro_solicitud = s.nro_solicitud and
+      b.nro_solicitud = v.nro_solicitud and
+      s.id_persona = p.id_persona and
+      c.rubro = r.rubro and
+      c.sub_Rubro = r.sub_rubro and
+      s.seccion = 'DSMBLSDO' AND            
+      cuotas.Nro_Solicitud = s.NRO_SOLICITUD AND
+      cuotas.Nro_Cuota =* b.nro_cuota AND
+      b.nro_cuota = 0 and
+      a.COD_TRANSACCION ='01'  
+group by a.transaccion, b.nro_solicitud,v.nro_vale,a.fecha,p.ape1,p.ape2,p.nom1,c.rubro,c.sub_rubro,r.den_rubro,b.nro_Cuota,cuotas.Fecha_Vencimiento , a.cod_transaccion
+
+
+
+------------------------------------ permisos para productos efectivo clic
+
+select * from menu_nivel2 where aplicacion = 'vales' and desc2 like '%Producto%'
+insert into menu_nivel2 values('vales',	'w_principal_vale','menu_vales','Registro','Productos',1,7)
+insert into menu_nivel2 values('vales',	'w_principal_vale','menu_vales','Vales','Asociar Productos a Solicitudes',2,9)
+insert into menu_nivel2_grupos values('vales',	'w_principal_vale','menu_vales','Vales','Asociar Productos a Solicitudes','ADMINISTRADOR')
+insert into menu_nivel2_grupos values('vales',	'w_principal_vale','menu_vales','Registro','Productos','ADMINISTRADOR')
+
+---------- sucred autorizar desembolso
+
+select * from solicitudes where nro_solicitud = 81
+
+update autorizacion_desembolso set desembolso_realizado = 'S', fecha_desembolso = fecha_autorizacion, usuario_desembolso ='sa' where nro_solicitud = 81
+
+update solicitudes set seccion = 'DSMBLSDO' where nro_solicitud = 81
+
+
+
+
+------ SELECT DE CARAVANAS INACTIVAS CON SU FECHA DE BAJA (REPORTE ENVIADO A LUCIA 07/09/2018) ----------------------
+
+
+ select * ,
+ (select guia from operacion where nro_operacion = 
+ (select max(a.nro_operacion) from operacion a ,operacion_renglon_caravana b, tipo_operacion c
+		 where a.nro_operacion =   b.nro_operacion
+		 and a.tipo_operacion = c.tipo_operacion
+		 and caravana.codigo_caravana = b.codigo_caravana
+		 and c.suma_resta = -1)) as guia_baja
+ from caravana 
+ where estado  = 'I'
+
+ <script>
+                    $(document).ready(function(){
+                    window.delay(3000);
+                    window.location.replace("https://api.whatsapp.com/send?phone=598098011777");
+                 });
+                 </script>
+
+
+--  query para cambiar el dia y el mes del vencimiento  ----------------------------
+
+	 select * from cuotas where nro_solicitud = 1088
+update cuotas set fecha_vencimiento = '20180805' where nro_solicitud = 8724 and nro_cuota = 1
+update cuotas set fecha_vencimiento = '20180805' where nro_solicitud = 1088 and nro_cuota = 2
+update cuotas set fecha_vencimiento = '20180905' where nro_solicitud = 1088 and nro_cuota = 3
+update cuotas set fecha_vencimiento = '20181005' where nro_solicitud = 1088 and nro_cuota = 4
+update cuotas set fecha_vencimiento = '20181105' where nro_solicitud = 1088 and nro_cuota = 5
+update cuotas set fecha_vencimiento = '20181205' where nro_solicitud = 1088 and nro_cuota = 6
+update cuotas set fecha_vencimiento = '20190105' where nro_solicitud = 1088 and nro_cuota = 7
+update cuotas set fecha_vencimiento = '20190205' where nro_solicitud = 1088 and nro_cuota = 8
+update cuotas set fecha_vencimiento = '20190305' where nro_solicitud = 1088 and nro_cuota = 9
+update cuotas set fecha_vencimiento = '20190405' where nro_solicitud = 1088 and nro_cuota = 10
+update cuotas set fecha_vencimiento = '20190505' where nro_solicitud = 1088 and nro_cuota = 11
+update cuotas set fecha_vencimiento = '20190605' where nro_solicitud = 1088 and nro_cuota = 12
+
+
+---------------------------------------------------------------------
+
+volver solicitud a comite
+
+
+select * from movimientos_solicitudes where nro_solicitud = 1006
+
+select * from solicitudes where nro_solicitud = 1006
+
+-- volver la solicitud desde la ventana de solicitudes en archivo
+
+insert into movimientos_solicitudes values (1006,'20180605','162900','COMITE','sa')
+update solicitudes set seccion = 'COMITE', observaciones = '' , estado = 'Z', motivo_rechazo ='' where nro_solicitud = 1006
+-----------------------------------------------------------
+cambiar cedula
+
+select * from solicitudes where nro_solicitud = 1628 -- mala persona 1519
+--cedula 5471461-5
+select * from personas where id_persona = 1519
+SELECT * FROM IDENTIFICACIONES WHERE NRO_IDENTIFICACION = '5471461' -- BUENA GENTE 1522
+
+UPDATE SOLICITUDES SET ID_PERSONA = 1522 WHERE NRO_SOLICITUD = 1628
+
+-----------------------------------------------------------
+cambiar la fecha a otra
+
+use mainaugroup
+
+select * from cuotas where nro_solicitud = 1561
+
+update cuotas set fecha_vencimiento = left(fecha_vencimiento,6)+'10', fecha_cuota_vale = left(fecha_vencimiento,6)+'10' where nro_solicitud = 1561
+
+---------------------
+
+
+select * from transacciones a, transacciones_cobranza b ,transacciones_cobranza_asignacion c
+where a.transaccion = b.transaccion
+and b.transaccion = c.transaccion
+and a.cod_transaccion = '15' and a.fecha >='20180501'
+
+---------------------
+select * from cuotas where nro_solicitud = 1152
+
+update cuotas set fecha_vencimiento = left(fecha_vencimiento,6)+ '30', fecha_cuota_vale = left(fecha_vencimiento,6)+ '30' where nro_solicitud = 1152
+
+-------------------------------------------------
+
+
+select * from tmp_asientos_zlibra
+select * from facturas where numero_Fex = 181
+select * from renglones_facturas where nro_factura = 9409
+select * from facturas where numero_Fex = 182
+select * from renglones_facturas where nro_factura = 9411
+select * from facturas where numero_Fex = 183
+select * from renglones_facturas where nro_factura = 9413
+
+
+select * from facturas where nro_Solicitud = 293 and aaaamm = '201804' and nro_factura = 9408  --fex 8983
+
+select * from facturas f, renglones_facturas rf
+ where f.nro_factura = rf.nro_factura
+ and f.aaaamm = '201804'
+ and rf.rubro = '500'
+ and f.tipo_documento = 'nC'
+
+
+ 
+
+
+
+---------------------------------------------------
+
+CANCELACIONES ANTICIPADAS PRESTACEL
+
+select a.fecha,a.transaccion,a.nro_solicitud from v_movtos_contables a, transacciones b 
+where a.transaccion = b.transaccion
+and nro_cuota = 0
+and a.cod_transaccion = 01 
+and b.anulada_sn='N'
+group by a.fecha,a.transaccion, a.nro_solicitud
+order by a.nro_solicitud, a.fecha
+
+
+----------------------------------------------------- archivo con descuentos
+
+select a.transaccion, a.fecha, b.nro_identificacion,f.nom1,f.ape1, b.nro_solicitud,d.nro_vale, b.monto as monto_transaccion  , c.nro_cuota, c.rubro,c.monto
+from transacciones a, transacciones_cobranza b, transacciones_cobranza_asignacion c, vales d, solicitudes e, personas f
+ where a.transaccion = b.transaccion
+ and a.transaccion = c.transaccion
+ and b.nro_solicitud = d.nro_solicitud
+ and a.cod_transaccion = 15 
+ and d.nro_solicitud = e.nro_solicitud
+ and e.id_persona = f.id_persona
+ and a.fecha >='20180401' 
+ and a.fecha <'20180501'
+ and anulada_sn = 'N'
+ and cancela_sn = 'N'
+
+
+
+
+--------
+
+
+--borrar operacion consignacion. subo las caravanas. borro la operacion
+
+select * from operacion where id_fideicomiso = 1848 and nro_operacion = 18472
+select * from operacion_renglon where nro_operacion = 18472
+select * from operacion_renglon_caravana where nro_operacion = 18472
+select * from caravana where id_fideicomiso = 1848 and codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 18472)
+
+-- si es venta o devolucion hacer el update de caravanas, si es ampliacion hacer el delete de caravanas
+--update caravana set estado = 'A' where id_fideicomiso = 2184 and codigo_caravana in 
+--	(select codigo_caravana from operacion_renglon_caravana where nro_operacion = 42556)
+--delete from caravana where id_fideicomiso = 2184 and codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 42556)
+--delete from operacion_renglon_caravana where nro_operacion = 42556
+--delete from operacion_renglon where nro_operacion = 42556
+--delete from operacion where id_fideicomiso = 2184 and nro_operacion = 42556
+
+
+
+
+---- si hay que cambiar una cedula en GAVANce---------
+
+select * from identificaciones
+
+insert into identificaciones VALUES( 'CI','3909185',5)
+
+DELETE FROM IDENTIFICACIONES WHERE COD_ID = 'cI' AND NRO_IDENTIFICACION = '3091850'
+
+SELECT * FROM VALES WHERE NRO_IDENTIFICACION = '3091850'
+
+UPDATE VALES SET NRO_IDENTIFICACION = '3909185' WHERE NRO_SOLICITUD = 4
+
+
+---------------------------------------------
+
+GSAFMAS SI HAY QUE CAMBIAR LA GUIA DE LA OPERACION
+TAMBIEN HAY QUE CAMBIAR LAS GUIAS DE LAS CARAVANAS
+
+select * from operacion where id_fideicomiso = 1412 and nro_operacion = 11
+
+-- update operacion set guia = 'W551841' where id_fideicomiso = 1412 and nro_operacion = 11
+select * from guia_compra where guia =  'W551841'
+select * from caravana where id_fideicomiso = 1412
+
+update caravana set guia = 'W551841' where codigo_caravana in (select codigo_caravana from operacion_Renglon_Caravana where nro_operacion = 11)
+
+--------------------------------------------------------------------------------
+
+select * from numeradores 
+update numeradores set numerador = 0 where tabla = 'LOTE_CONC_DESEMBOLSO'
+DEJAMOS TODOS LOS NUMERADORES EN CERO
+
+
+delete from solicitudes
+delete from solicitudeS_imagenes
+delete from solicitudes_referencias
+delete from solicitudes_referencias_cuestionario
+delete from vales
+delete from cuotas
+delete from rubros_cuotas
+delete from transacciones
+delete from transacciones_cobranza
+delete from transacciones_cobranza_Asignacion
+delete from autorizacion_Desembolso
+delete from identificaciones
+delete from personas
+delete from autorizacion_cancelacion
+delete from control_sp_envio_sms
+delete from his_composicion_Cartera
+select * from motivos_Rechazo
+
+
+
+delete from solicitudes where nro_solicitud =6286
+delete from movimientos_solicitudes where nro_solicitud = 6286
+delete from vales where nro_solicitud =6286
+delete from autorizacion_desembolso where nro_solicitud =6286
+delete from cuotas where nro_solicitud =6286
+delete from rubros_cuotas where nro_solicitud =6286
+delete from transacciones where transaccion = 38729
+delete from transacciones_debito where nro_solicitud =6286
+delete from transacciones_debito_por_rubro where transaccion = 38729
+
+
+reporte de montos desembolsados en renovaciones
+
+select s.nro_solicitud, s.fecha_solicitud, v.nro_vale, i.cod_id,i.nro_identificacion,p.nom1,p.ape1,v.capital as capital_nueva_solicitud,
+s.solicitud_cancela,s.monto_solicitud_cancela, (v.capital - monto_solicitud_cancela) as monto_desembolsado
+from solicitudes s , personas p, identificaciones i, vales v
+where s.id_persona = p.id_persona
+and p.id_persona = i.id_persona
+and s.nro_solicitud = v.nro_solicitud
+and left(fecha_solicitud,6) = '201802'
+and seccion = 'dsmblsdo' and nuevo_renova = 'E'
+order by s.nro_solicitud
+
+------------------------------------------
+
+
+
+
+
+
+select * from cont_astos where fecha = '20180220' and empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 467 and numero_asto <= 498
+
+select * from cont_astos_renglones where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 467 and numero_asto <= 498
+
+select * from cont_astos_renglones_val where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 467 and numero_asto <= 498
+
+--delete from cont_astos where fecha = '20180220' and empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 467 and numero_asto <= 498
+
+--delete from cont_astos_renglones where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 467 and numero_asto <= 498
+
+--delete from cont_astos_renglones_val where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 467 and numero_asto <= 498
+
+ 
+
+select * from cont_astos where fecha = '20180221' and empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 433 and numero_asto <= 444
+
+select * from cont_astos_renglones where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 433 and numero_asto <= 444
+
+select * from cont_astos_renglones_val where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 433 and numero_asto <= 444
+
+--delete from cont_astos where fecha = '20180221' and empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 433 and numero_asto <= 444
+
+--delete from cont_astos_renglones where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 433 and numero_asto <= 444
+
+--delete from cont_astos_renglones_val where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 433 and numero_asto <= 444
+
+ 
+
+select * from cont_astos where fecha = '20180228' and empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 230 and numero_asto <= 241
+
+select * from cont_astos_renglones where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 230 and numero_asto <= 241
+
+select * from cont_astos_renglones_val where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 230 and numero_asto <= 241
+
+--delete from cont_astos where fecha = '20180228' and empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 230 and numero_asto <= 241
+
+--delete from cont_astos_renglones where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 230 and numero_asto <= 241
+
+--delete from cont_astos_renglones_val where empresa = 2 and aaaa = '2018' and mm ='02' and numero_asto >= 230 and numero_asto <= 241
+
+
+-----------------------------------------------------------------------------
+
+
+select * from cont_cuentas where rubro = '51307' and empresa = 1
+
+
+select * from cont_Astos where empresa = 1 and mm = '03'and aaaa = '2018' and numero_Asto = 27
+select * from cont_Astos_renglones where empresa = 1 and mm = '03'and aaaa = '2018' and numero_Asto = 27
+select * from cont_Astos_renglones_val where empresa = 1 and mm = '03'and aaaa = '2018' and numero_Asto = 27
+
+
+select * from cont_Astos where empresa = 1 and mm = '03'and aaaa = '2018' and numero_Asto = 28
+select * from cont_Astos_renglones where empresa = 1 and mm = '03'and aaaa = '2018' and numero_Asto = 28
+select * from cont_Astos_renglones_val where empresa = 1 and mm = '03'and aaaa = '2018' and numero_Asto = 28
+
+------------------------------------------------------------------------------------------------
+cambiar estado de una operacion VERSION INES
+
+select * from operacion where nro_operacion = 17302
+
+select * from operacion_renglon where nro_operacion = 17302
+
+select * from operacion_renglon_caravana where nro_operacion = 17302
+
+select * from caravana where id_fideicomiso = 1886 and codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 17302)
+
+--update caravana set estado = 'A', fecha_baja = '' where id_fideicomiso = 1886 and codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 17302)
+
+delete from operacion where nro_operacion = 17302
+
+delete from operacion_renglon where nro_operacion = 17302
+
+delete from operacion_renglon_caravana where nro_operacion = 17302
+
+select * from caravana where id_fideicomiso = 1886 and codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 17302)
+
+update caravana set estado = 'A', fecha_baja = '' where id_fideicomiso = 1886 and codigo_caravana in (select codigo_caravana from operacion_renglon_caravana where nro_operacion = 17302)
+
+
+
+/*
+mayorOpt antes del toto
+"select b.rubro,"                                                                                                                             
++ " ctas.descripcion as descripcion_rubro,"                                                                                                   
++ " e.razon_social,"                                                                                                                          
++ " a.fecha,"                                                                                                                                 
++ " a.moneda,"                                                                                                                                
++ " a.comprobante,"                                                                                                                           
++ " b.detalle,"                                                                                                                               
++ " a.tc,"                                                                                                                                    
++ " isnull(t.debe, 0) as debe,"                                                                                                               
++ " isnull(t.haber, 0) as haber,"                                                                                                             
++ " a.numero_asto,"                                                                                                                           
++ " ce.codigo_entidad as ce,"                                                                                                                 
++ " ce.codigo as ce_codigo,"                                                                                                                  
++ " ce.descripcion as ce_descripcion,"                                                                                                        
++ " b.codigo_centro_costo as cc,"                                                                                                             
++ " cc.descripcion as cc_descripcion,"                                                                                                        
++ " a.detalle as detalle_asiento,"                                                                                                            
++ " a.empresa"                                                                                                                                
++ " from cont_astos a"                                                                                                                        
++ " inner join cont_astos_renglones b on a.empresa = b.empresa and a.aaaa = b.aaaa and a.mm = b.mm and a.numero_asto = b.numero_asto"         
++ " inner join cont_centros_costo cc on b.empresa = cc.empresa and b.codigo_centro_costo = cc.codigo_centro_costo"                            
++ " inner join cont_presupuestos cp on b.empresa = cp.empresa and b.codigo_presupuesto = cp.codigo_presupuesto"                               
++ " inner join cont_cuentas ctas on b.empresa = ctas.empresa and b.rubro = ctas.rubro"                                                        
++ " inner join cont_entidades ce on b.empresa = ce.empresa and b.codigo_entidad = ce.codigo_entidad"                                          
++ " inner join cont_empresas e on a.empresa = e.empresa"                                                                                      
++ " left outer join cont_astos_renglones_val t on t.empresa = b.empresa and t.aaaa = b.aaaa and t.mm = b.mm and t.numero_asto = b.numero_asto"
++ "  and t.numero_renglon = b.numero_renglon and t.moneda = "+objI.getMoneda()                                                                
++ " where a.fecha between '"+objI.getFechaDesde()+"' and '"+objI.getFechaHasta()+"' and"                                                      
++ " b.rubro = '"+objI.getRubroDesde()+"' and"                                                                                                 
++ " a.empresa = "+objI.getIdEmpresa()+" and"                                                                                                  
++ " (a.moneda = "+objI.getMonedaAsto()+" or "+objI.getMonedaAsto()+" = -1 ) and"                                                              
++ " (b.codigo_centro_costo = "+objI.getCentroCostos()+" or "+objI.getCentroCostos()+" = 0 ) and"                                              
++ " (b.codigo_presupuesto = "+objI.getPresupuesto()+" or "+objI.getPresupuesto()+" = 0 ) and"                                                 
++ " (b.codigo_entidad = "+objI.getEntidad()+" or "+objI.getEntidad()+" = 0 )"                                                                 
++ " order by 1,4,11"                                                                           
+
+
+*/
+ a.monto_cuota ,   
+        a.fecha_vencimiento , 
+          a.fecha_cuota_vale ,    
+       a.saldo_cuota_vale,
+	   b.rubro,
+	   b.valor_rubro
+
+
+[<confirmacion_desembolso>
+	<cod_retorno>01</cod_retorno>
+	<tipo_documento>CI</tipo_documento>
+	<documento>4408191</documento>
+	<solicitud>20</solicitud>
+	<autorizacion>19</autorizacion>
+	<id_vale>0</id_vale>
+	<monto>000000.00</monto>
+	<fecha>20180119</fecha>
+	<hora>115419</hora>
+	<detalle>No existe autorización</detalle>
+	<?xml version="1.0" encoding="UTF-16LE" standalone="no"?>
+
+	<ds_formulario_vale>
+		<ds_formulario_vale_row>
+			<cod_identificacion>CI</cod_identificacion>
+			<nro_identificacion>4408191   </nro_identificacion>
+			<nro_solicitud>20</nro_solicitud>
+			<fecha_genera_vale>20180118</fecha_genera_vale>
+			<fecha_inicio_vale>20180118</fecha_inicio_vale>
+			<fecha_vencimiento_vale>20180118</fecha_vencimiento_vale>
+			<cod_tipo_vale>2</cod_tipo_vale>
+			<capital>12000</capital>
+			<cuotas>6</cuotas>
+			<valor_tasa_anual>105</valor_tasa_anual>
+			<porcentaje_comision>0</porcentaje_comision>
+			<porcentaje_seguro>0.006</porcentaje_seguro>
+			<fecha_saldo_vale>20180118</fecha_saldo_vale>
+			<saldo_vale>15978</saldo_vale>
+			<total_vale>15978</total_vale>
+			<monto_primer_cuota>2663</monto_primer_cuota>
+			<monto_restantes_cuotas>2663</monto_restantes_cuotas>
+			<cod_identificacion_garante></cod_identificacion_garante>
+			<nro_identificacion_garante></nro_identificacion_garante>
+			<nro_vale>29</nro_vale>
+			<costo_envio>0</costo_envio>
+			<vencimiento_ultima_cuota>20180718</vencimiento_ultima_cuota>
+			<cod_identificacion_codeudor></cod_identificacion_codeudor>
+			<nro_identificacion_codeudor></nro_identificacion_codeudor>
+			<vto_primera_cuota>20180218</vto_primera_cuota>
+			<iva>717.31</iva>
+			<intereses>2745.06</intereses>
+			<gastos>296.394</gastos>
+			<seguro>219</seguro>
+			<tma>7.64281</tma>
+			<gastos_desembolso>134.724</gastos_desembolso>
+			<gastos_cuota>161.6688</gastos_cuota>
+			<valor_tasa_mensual>6.16</valor_tasa_mensual>
+			<gastos_desembolso_ui>6.67</gastos_desembolso_ui>
+			<gastos_cuota_ui>8.00</gastos_cuota_ui>
+			<redondeo>0.23</redondeo>
+			<tasa_mora_anual>140</tasa_mora_anual>
+		</ds_formulario_vale_row>
+	</ds_formulario_vale>
+</confirmacion_desembolso>]
+
+
+
+-------------------- tiramos esto en produccion GSAFMAS 19/01/2018 -----------------
+
+
+select * from operacion where id_fideicomiso = 2074 and nro_operacion in(13995,13997,13999,14005)
+select * from operacion_renglon where nro_operacion in(13995,13997,13999,14005)
+select * from operacion_renglon_caravana where nro_operacion in(13995,13997,13999,14005)
+
+delete from operacion where id_fideicomiso = 2074 and nro_operacion in(13995,13997,13999,14005)
+delete from operacion_renglon where nro_operacion in(13995,13997,13999,14005)
+delete from operacion_renglon_caravana where nro_operacion in(13995,13997,13999,14005)
+
+select * from caravana where codigo_caravana in(select codigo_caravana from operacion_renglon_caravana where nro_operacion in(13995,13997,13999,14005))
+
+select * from preembarque where nro_preembarque in (7013,7014,7015,7016)
+
+select * from guia_compra where guia in('X126000','X126001','X126002','X126003')
+
+
+-------------------- tiramos esto en produccion GSAFMAS 17/01/2018 -----------------
+
+
+
+Inés, cómo estás?
+
+Te podría pedir si cambias todas las operaciones del Fideicomiso 2596 al 1066? (las muestro en foto adjunta)
+Y después de cambiar las operaciones del 2596 al Fid 1066, podrías borrar el 2596?
+Saludos y disculpas por la complicación,
+María Eugenia
+-----------------------------------------------
+use gsafmas
+
+update operacion set id_fideicomiso = 1066 where nro_operacion in(15994,15996,15998,16000,16107,16109)
+select * from operacion where id_fideicomiso = 2596
+select * from operacion_renglon where nro_operacion in(15994,15996,15998,16000,16107,16109)
+select * from operacion_renglon_caravana where nro_operacion in(15994,15996,15998,16000,16107,16109)
+
+select * from operacion where id_fideicomiso = 1066
+
+
+--update operacion set id_fideicomiso = 1066 where nro_operacion in(15994,15996,15998,16000,16107,16109)
+
+select * from fideicomiso where id_fideicomiso = 2596
+select * from operacion where id_fideicomiso = 2596
+select * from caravana where id_fideicomiso = 2596
+-- update caravana set id_fideicomiso = 1066 where id_fideicomiso = 2596
+
+select * from operacion_Renglon_Caravana where codigo_Caravana in(select codigo_caravana from caravana where id_fideicomiso = 2596 )
+
+select * from fideicomiso  where id_fideicomiso = 2596
+--las operaciones del 2596 al Fid 1066 podrías borrar el 2596?
+delete from fideicomiso where id_fideicomiso = 2596
+select * from preembarque where id_fideicomiso = 2596
+update preembarque set id_fideicomiso = 1066 where id_fideicomiso = 2596
+
+
+-----------------------------------------------------------------------
+
+USE [EfectivoClic]
+GO
+/****** Object:  UserDefinedFunction [dbo].[Fx_Calculo_Mora_Cuota]    Script Date: 16/01/2018 03:50:42 p.m. ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+create function [dbo].[Fx_Calculo_Mora_Importe] (@nro_solicitud integer, 
+												  @nro_cuota integer, 
+												  @fecha_vencimiento char(8) )
+returns float
+as
+begin
+	declare @dias_mora float;
+	declare @tasa float;
+	declare @tasa_mora float;
+	declare @tasa_iva float;
+	declare @ui float;
+	declare @monto_mora float;
+	declare @monto_multa float;
+	declare @cant_ui float;
+	declare  @importe decimal;
+
+	select @importe = sum(saldo_rubro_cuota) 
+	from rubros_cuotas a
+	where a.nro_solicitud = @nro_solicitud 
+	and	a.nro_cuota = @nro_cuota 
+	and a.rubro in('500','600')
+	
+	set @tasa = (select tasa_mora from tasas where cod_fondeo = 'ECLIC')
+	set @dias_mora = datediff(day,convert(datetime,substring(@fecha_vencimiento,7,2)+'/'+substring(@fecha_vencimiento,5,2)+'/'+substring(@fecha_vencimiento,1,4)),convert(char(8),getdate(),112))
+	set @tasa_mora = power(((1 + CONVERT(FLOAT,@tasa) / 100)),(CONVERT(FLOAT,@dias_mora) / 365)) - 1
+	--(((1+gtasa_mora/100))^(dias_mora/365)-1)
+	set @tasa_iva = (select isnull(valor,0) from impuestos where cod_impuesto = 1)
+	set @monto_mora = cast(CONVERT(FLOAT,@importe) * CONVERT(FLOAT,@tasa_mora)  * ( 1 + CONVERT(FLOAT,@tasa_iva) / 100 ) as decimal(18,2))
+	
+	return @monto_mora
+	
+end
+
+
+
+
+
+------------------------------------------------------------------
+
+informe 70000
+
+
+select * from (
+select pp.nro_vale, sum(pp.total_rubros ) tot from (
+select a.nro_vale, sum(saldo_rubro_cuota) as total_rubros
+from vales a,
+     identificaciones b,
+     personas c,
+     solicitudes d,
+	 cuotas e,
+    rubros_cuotas f
+where a.cod_identificacion = b.cod_id and
+      a.nro_identificacion = b.nro_identificacion and
+      b.id_persona = c.id_persona and
+      a.nro_solicitud = d.nro_solicitud and
+	  d.seccion = 'DSMBLSDO' and
+	  e.nro_solicitud = a.nro_solicitud and
+	  e.saldo_cuota_vale > 0.5 and
+	  dbo.dias_atraso_vale(a.nro_solicitud,'20180116') > 0 and
+	 f.nro_solicitud = a.nro_solicitud and 
+	 f.nro_cuota = e.nro_cuota 
+	 group by a.nro_vale
+	 union all
+select a.nro_vale, sum(dbo.Fx_Calculo_Mora_Cuota_julio(a.nro_solicitud,e.nro_cuota,e.fecha_vencimiento)) as total_mora
+from vales a,
+     identificaciones b,
+     personas c,
+     solicitudes d,
+	 cuotas e
+where a.cod_identificacion = b.cod_id and
+      a.nro_identificacion = b.nro_identificacion and
+      b.id_persona = c.id_persona and
+      a.nro_solicitud = d.nro_solicitud and
+	  d.seccion = 'DSMBLSDO' and
+	  e.nro_solicitud = a.nro_solicitud and
+	  e.saldo_cuota_vale > 0.5 and
+	  dbo.dias_atraso_vale(a.nro_solicitud,'20180116') > 0  	  
+group by a.nro_vale
+     ) pp
+	 	 group by pp.nro_vale)julio
+		 where tot > 70000
+
+
+-----------------------------------------------
+
+
+base seguridad_multiplicate
+
+select * from dominios
+delete from dominios where dominio = 'torresWTC'
+select * from usuarios
+delete from usuarios where usuario = 'lucia'
+insert into usuarios values ('sa','sa',null,'20300505')
+select * from dominios_usuarios
+delete from dominios_usuarios where dominio = 'torresWTC'
+insert into dominios_usuarios values('Multiplicate','sa')
+insert into dominios values ('Multiplicate')
+select * from grupos_usuarios
+update grupos_usuarios set usuario ='sa'
+
+
+
+---------------- INSERT MANUAL DE USUARIOS YITO--------------------
+  INSERT INTO CONT_SEG_USUARIOS_WEB  (
+  	USUARIO,
+  	[PASSWORD],
+  	ACTIVO_SN,
+  	FECHA_EXPIRACION  )
+  VALUES  (
+  	'elima',
+  	'123.a',
+  	'S',
+  	'20220202'  )
+INSERT INTO CONT_SEG_USUARIO_EMPRESA  (
+  	USUARIO,
+  	EMPRESA  )
+  VALUES  (
+  	'elima',
+  	2  )
+  INSERT INTO CONT_SEG_USUARIO_EMPRESA  (
+  	USUARIO,
+  	EMPRESA  )
+  VALUES  (
+  	'elima',
+  	2  )
+  INSERT INTO CONT_SEG_GRUPOS_USUARIOS_WEB  (
+  	USUARIO,
+  	GRUPO  )
+  VALUES  (
+  	'elima',
+  	'ADMINISTRADOR'  )
+  
+  SELECT * FROM CONT_SEG_GRUPOS
+
+
+----------------- actualizar dicoses en operacion
+
+SELECT * FROM OPERACION WHERE NRO_OPERACION = 13194
+SELECT * FROM OPERACION_RENGLON WHERE NRO_OPERACION = 13194
+SELECT * FROM OPERACION_RENGLON_CARAVANA WHERE NRO_OPERACION = 13194
+SELECT * FROM caravana WHERE CODIGO_CARAVANA IN (SELECT CODIGO_CARAVANA 
+                                                FROM OPERACION_RENGLON_CARAVANA WHERE NRO_OPERACION = 13194)
+                                                
+                                                
+UPDATE operacion SET DICOSE_C = '030541375', DICOSE_D = '030539591' FROM OPERACION WHERE NRO_OPERACION = 13194
+
+update caravana SET DICOSE_UBICACION = '030539591' WHERE CODIGO_CARAVANA IN (SELECT CODIGO_CARAVANA 
+                                                FROM OPERACION_RENGLON_CARAVANA WHERE NRO_OPERACION = 13194)
+
+
+
+-------------------------------------------------------------------------------------
+INFORME DE ELEGIBLES PARA RENOVACION
+
+--Tener el 70% de su crédito cancelado.
+--No contar con un atraso mayor de 30 días en las cuotas pagas (esto es por cuota).
+--Estar al día con el crédito.
+
+ 
+  SELECT dbo.fx_porcentaje_cancelado(4482) AS porc_cancelado
+  	
+  SELECT MAX(dias_cancelacion) AS max_dia_atraso FROM 
+  (SELECT  cuotas.nro_cuota ,       
+	  dbo.dias_entre(cuotas.fecha_vencimiento,cuotas.fecha_cuota_vale) as dias_cancelacion
+   FROM cuotas    
+  WHERE ( cuotas.nro_solicitud =4482)  ) a 
+  	
+  SELECT dbo.dias_atraso_vale(4482,'20171108') AS atraso_cuota
+  
+ -- en una sola fila
+  SELECT dbo.fx_porcentaje_cancelado(4482) AS porc_cancelado,
+  (SELECT MAX(dias_cancelacion) FROM 
+  (SELECT  cuotas.nro_cuota ,       
+	  dbo.dias_entre(cuotas.fecha_vencimiento,cuotas.fecha_cuota_vale) as dias_cancelacion
+   FROM cuotas    
+  WHERE ( cuotas.nro_solicitud =4482)  ) a ) AS max_dia_atraso,
+  (SELECT dbo.dias_atraso_vale(4482,'20171108')) AS atraso_cuota
+  
+  -- con mas datos
+  
+SELECT ss.nro_solicitud,ss.nuevo_renova,p.nom1,p.ape1,v.cod_identificacion,v.nro_identificacion,
+(SELECT dbo.fx_porcentaje_cancelado(ss.nro_solicitud) )AS porc_cancelado,
+(SELECT MAX(dias_cancelacion) FROM 
+(SELECT  cuotas.nro_cuota,       
+dbo.dias_entre(cuotas.fecha_vencimiento,cuotas.fecha_cuota_vale) as dias_cancelacion
+FROM cuotas    
+WHERE ( cuotas.nro_solicitud =ss.nro_solicitud)  ) a ) AS max_dia_atraso,
+(SELECT dbo.dias_atraso_vale(ss.nro_solicitud,(select convert(char(8),getdate(),112)))) AS atraso_cuota
+ FROM SOLICITUDES ss,  personas p, vales v
+WHERE ss.ID_PERSONA = p.ID_PERSONA
+AND v.Nro_Solicitud = ss.nro_solicitud
+AND ss.SECCION = 'DSMBLSDO'
+AND v.Saldo_Vale >1
+ORDER BY ss.NRO_SOLICITUD
+
+---terminado
+ SELECT ss.nro_solicitud,v.nro_vale,ss.nuevo_renova,p.nom1,p.ape1,v.cod_identificacion,v.nro_identificacion,
+(SELECT dbo.fx_porcentaje_cancelado(ss.nro_solicitud) )AS porc_cancelado,
+(SELECT dbo.Fx_max_dias_atraso(ss.nro_solicitud)) AS max_dia_atraso,
+(SELECT dbo.dias_atraso_vale(ss.nro_solicitud,(select convert(char(8),getdate(),112)))) AS atraso_cuota
+FROM SOLICITUDES ss,  personas p, vales v, cuotas c
+WHERE ss.ID_PERSONA = p.ID_PERSONA
+AND v.Nro_Solicitud = ss.nro_solicitud
+AND v.Nro_Solicitud = c.Nro_Solicitud
+AND dbo.Fx_max_dias_atraso(ss.nro_solicitud)<=30
+AND dbo.fx_porcentaje_cancelado(ss.nro_solicitud)>=70
+and dbo.dias_atraso_vale(ss.nro_solicitud,(select convert(char(8),getdate(),112)))<=0
+AND ss.SECCION = 'DSMBLSDO'
+AND v.Saldo_Vale >1
+GROUP BY ss.nro_solicitud,v.nro_vale,ss.nuevo_renova,p.nom1,p.ape1,v.cod_identificacion,v.nro_identificacion
+ORDER BY ss.NRO_SOLICITUD
+
+
+
+------------------------------------------------------------
+SELECT * FROM transacciones_cobranza tc, transacciones t
+WHERE tc.transaccion = t.transaccion
+and t.cod_transaccion = '15'  
+AND tc.nro_solicitud = 496
+
+------------------------------------------------
+SELECT a.transaccion,
+       b.nro_solicitud,
+       v.nro_vale,
+       a.fecha,
+       p.ape1,
+       p.ape2,
+       p.nom1,
+       c.rubro,
+       c.sub_rubro,
+      r.den_rubro,
+      sum(case  c.rubro when '400' then c.monto/1.22 else c.monto end) as monto,
+      c.nro_cuota,
+      cuotas.Fecha_Vencimiento, 
+	  a.cod_transaccion
+from transacciones a,  
+     transacciones_cobranza b,
+     solicitudes s,
+   --  left outer join cuotas ON cuotas.Nro_Solicitud  = s.NRO_SOLICITUD and cuotas.Nro_Cuota = b.nro_cuota,
+     transacciones_cobranza_asignacion c,
+     vales v,
+     personas p,
+     rubros r,
+     cuotas
+where a.transaccion = b.transaccion and
+      b.transaccion = c.transaccion and
+      substring(a.fecha,1,6) <= '201710' and
+      a.anulada_sn = 'N' and
+      c.monto > 0.1 and c.rubro not in('500', '700') and
+      b.nro_solicitud = s.nro_solicitud and
+      b.nro_solicitud = v.nro_solicitud and
+      s.id_persona = p.id_persona and
+      c.rubro = r.rubro and
+      c.sub_Rubro = r.sub_rubro and
+      s.seccion = 'DSMBLSDO' AND            
+      cuotas.Nro_Solicitud = s.NRO_SOLICITUD AND
+      cuotas.Nro_Cuota = c.nro_cuota and
+      a.COD_TRANSACCION ='15' --and
+     --(v.atrasado IS NULL OR v.atrasado ='N' or v.atrasado = '') 
+group by a.transaccion, b.nro_solicitud,v.nro_vale,a.fecha,p.ape1,p.ape2,p.nom1,c.rubro,c.sub_rubro,r.den_rubro,c.nro_Cuota,cuotas.Fecha_Vencimiento, cuotas.Facturada_SN, a.cod_transaccion
+
+
+---------------------------------------------------
+SELECT count(nro_solicitud) as autorizado_sn
+	into :wautorizado_sn
+	FROM AUTORIZACION_CANCELACION 
+	WHERE NRO_SOLICITUD = :wnro_solicitud using itr_trans;
+
+	if itr_trans.sqlcode <> 0 then
+		wdetalle = itr_trans.sqlerrtext
+		rollback using itr_trans;
+		wcod_retorno = '57'
+		xml_error     =  '<confirmacion_cobranza>'+&
+							'<cod_retorno>'+wcod_retorno+'</cod_retorno>' +&
+							'<detalle>'+wdetalle+'</detalle>'+&
+							'<transaccion>'+'</transaccion>'+&
+							'<tipo_documento>'+tipo_documento+'</tipo_documento><documento>'+documento+'</documento>' +&
+							'<id_vale>'+id_vale+'</id_vale><monto>'+monto+'</monto>' +&
+							'<fecha>'+wfecha+'</fecha><hora>'+whora+'</hora>'+&
+							'</confirmacion_cobranza>'
+	
+		itr_log.log("Error: " + xml_error)
+		itr_log.log("-------------------- Fin confirmacion cobranza (57) --------------------")
+		return xml_error
+	end if
+	
+	if wautorizado_sn = 0 then // si no esta autorizado
+		
+		rollback using itr_trans;
+		wcod_retorno = '51'
+		wdetalle = "No esta autorizado a Cancelar Anticipadamente"
+		xml_error     =  '<confirmacion_cobranza>'+&
+							'<cod_retorno>'+wcod_retorno+'</cod_retorno>' +&
+							'<detalle>'+wdetalle+'</detalle>'+&
+							'<transaccion>'+'</transaccion>'+&
+							'<tipo_documento>'+tipo_documento+'</tipo_documento><documento>'+documento+'</documento>' +&
+							'<id_vale>'+id_vale+'</id_vale><monto>'+monto+'</monto>' +&
+							'<fecha>'+wfecha+'</fecha><hora>'+whora+'</hora>'+&
+							'</confirmacion_cobranza>'	
+	
+		itr_log.log("Error: " + xml_error)
+		itr_log.log("-------------------- Fin confirmacion cobranza (51) --------------------")
+		
+		return xml_error
+		
+	end if
+
+-------------------------------------------------
+
+set ANSI_NULLS OFF
+set QUOTED_IDENTIFIER ON
+GO
+
+alter function [dbo].[Fx_monto_cancelacion] (@nro_solicitud INT, @nro_cuota int)
+returns @RetRub TABLE ( rubro integer,
+			  sub_rubro integer ,
+			  monto decimal )
+as
+begin
+	insert into @RetRub
+	select  rubro, sub_rubro,SUM(valor_rubro)*2 as monto  
+	from rubros_cuotas
+	where  nro_solicitud = @nro_solicitud and
+		   nro_cuota = @nro_cuota AND
+		   rubro = '600'
+	group by rubro,sub_rubro
+
+	UNION ALL
+
+	select  rubro, sub_rubro,sum(valor_rubro) as monto  
+	from rubros_cuotas
+	where  nro_solicitud = @nro_solicitud  and
+		   nro_cuota > @nro_cuota AND
+		   rubro <> '600'
+	group by rubro,sub_rubro
+      
+	return
+end
+
+
+
+
+------------------------------------
+select  rubro, sub_rubro,SUM(valor_rubro)*2 as monto  
+from rubros_cuotas
+where  nro_solicitud = :wnro_solicitud and
+	   nro_cuota = :wnro_cuota AND
+	   rubro = '600'
+group by rubro,sub_rubro
+
+UNION ALL
+
+select  rubro, sub_rubro,sum(valor_rubro) as monto  
+from rubros_cuotas
+where  nro_solicitud = :wnro_solicitud  and
+	   nro_cuota > :wnro_cuota AND
+	   rubro <> '600'
+group by rubro,sub_rubro
+      
+      
+
+USE Seguridad_EfectivoClic
+SELECT * FROM Menu_Nivel2 WHERE Aplicacion = 'vales' AND Nivel1 = 3 ORDER BY Nivel2
+SELECT * FROM Menu_Nivel2_Grupos WHERE Aplicacion = 'vales'
+SELECT * FROM usuarios
+SELECT * FROM grupos_usuarios
+INSERT INTO Menu_Nivel2_Grupos
+(
+	Aplicacion,
+	Ventana,
+	Menu,
+	Desc1,
+	Desc2,
+	grupo
+)
+VALUES
+(
+	'vales',
+	'w_principal_vale',
+	'menu_vales',
+	'Herramientas',
+	'Descuento',
+	'ADMINISTRADOR'
+)
+
+INSERT INTO Menu_Nivel2
+(
+	Aplicacion,
+	Ventana,
+	Menu,
+	Desc1,
+	Desc2,
+	Nivel1,
+	Nivel2
+)
+VALUES
+(
+	'vales',
+	'w_principal_vale',
+	'menu_vales',	
+	'Herramientas',
+	'Descuento',
+	3,
+	19
+)
+
+
+
+
+Tengo estas guías que me figuran como “disponibles” pero ya tienen movimientos ingresados y cerrados.
+Las pueden registrar como NO DISPONIBLES.
+W850635,W850555,W850554,W850553,W850552
+Estas 2 fueron entregadas x una sucursal y no sabemos de qué cliente son (no hay registro de movimientos=
+Pero están usadas en 2015 y hay que dejarlas como NO DISPONIBLES también.
+V831252,V964840
+SELECT * FROM GUIA_COMPRA WHERE guia LIKE ('%W850635%') 
+SELECT * FROM GUIA_COMPRA WHERE guia LIKE ('%W850555%')
+SELECT * FROM GUIA_COMPRA WHERE guia LIKE ('%W850554%')
+SELECT * FROM GUIA_COMPRA WHERE guia LIKE ('%W850553%')
+SELECT * FROM GUIA_COMPRA WHERE guia LIKE ('%W850552%')
+SELECT * FROM GUIA_COMPRA WHERE guia LIKE ('%V831252%')
+SELECT * FROM GUIA_COMPRA WHERE guia LIKE ('%V964840%')
+UPDATE GUIA_COMPRA SET DISPONIBLE = 'N' WHERE guia IN('W850635','W850555','W850554','W850553','W850552','V831252','V964840')
+
+*******************************************
+--Dimos de baja por error unos animales del FID. 2465.
+--La guía es la X92231 (2)
+--habría que eliminar el movimiento, dejando los 3 animales activos, y hasta la guía. Borrar todo.
+
+delete FROM OPERACION WHERE nro_operacion = 12125
+delete FROM OPERACION_RENGLON WHERE NRO_OPERACION = 12125
+delete FROM OPERACION_RENGLON_CARAVANA WHERE NRO_OPERACION = 12125
+
+SELECT * FROM OPERACION_RENGLON_CARAVANA WHERE nro_operacion = 12125
+
+SELECT * FROM PREEMBARQUE WHERE NRO_PREEMBARQUE = 6298
+SELECT * FROM GUIA_COMPRA WHERE GUIA = 'x76847 (2)'
+
+UPDATE GUIA_COMPRA SET DISPONIBLE = 'S'  WHERE GUIA = 'x76847 (2)'
+
+SELECT * FROM CARAVANA WHERE codigo_caravana IN(32798805,32798806,32798807)
+UPDATE CARAVANA set ESTADO = 'A', FECHA_BAJA = '' WHERE codigo_caravana IN(32798805,32798806,32798807)
+--SELECT * FROM CARAVANA WHERE  codigo_caravana in (SELECT codigo_caravana FROM OPERACION_RENGLON_CARAVANA WHERE NRO_OPERACION = 12125)
+
+
+
+/* informe que mandamos a lucia el viernes 28 con todos los fideicomisos de GSAF   */
+
+SELECT f.*, v.COD_ID,v.NRO_IDENTIFICACION
+  FROM FIDEICOMISO f, SOLICITUD s, PERSONA_JURIDICA v
+WHERE f.ID_FIDEICOMISO = s.ID_fideicomiso
+AND s.ID_PERSONA = v.ID_empresa
+AND s.TIPO_PARTICIPACION = 1 --618
+
+UNION ALL
+
+SELECT f.*, v.COD_ID,v.NRO_IDENTIFICACION
+  FROM FIDEICOMISO f, SOLICITUD s, PERSONA_fisica v
+WHERE f.ID_FIDEICOMISO = s.id_fideicomiso
+AND s.ID_PERSONA = v.ID_persona
+AND s.TIPO_PARTICIPACION = 1 --58
+ORDER BY f.ID_FIDEICOMISO
+
+
+
+/*****/
+
+
+
+/** SEGURIDAD MMAUTOMOVILES
+SELECT * FROM Menu_Nivel2 WHERE Aplicacion = 'vales' AND Desc1 = 'vales'                                                                      
+                                                                                                                                              
+delete FROM Menu_Nivel2 WHERE Aplicacion = 'vales' AND Desc1 = 'vales' AND Desc2 = 'Anulación Desembolso                              '       
+delete FROM Menu_Nivel2_Grupos WHERE Aplicacion = 'vales' AND Desc1 = 'vales' AND Desc2 = 'Anulación Desembolso                              '
+
+UPDATE DOMINIOS SET DOMINIO = 'MMAutomoviles'
+SELECT * FROM Dominios_usuarios                                                                                                               
+INSERT into Dominios_Usuarios VALUES ('MMAutomoviles','sa') 
+
+SELECT * FROM Dominios
+SELECT * FROM Dominios_Usuarios
+SELECT * FROM usuarios
+SELECT * FROM grupos_usuarios
+DELETE FROM usuarios WHERE usuario NOT IN ('SA')
+DELETE FROM grupos_usuarios WHERE usuario NOT IN ('SA')
+SELECT * FROM usuarios_web
+UPDATE usuarios_web SET	fecha_expiracion = '99999999'
+
+USE MMAutomoviles
+
+SELECT * FROM Tasas
+DELETE FROM tasas WHERE COD_FONDEO <> 'EClic'
+UPDATE tasas SET COD_FONDEO = 'MM' 
+delete FROM Tasas_Historico                                                                                  
+*/
+
+
+
+B I E N 
+
+<datosJSON>{"nombreBD":"YitoMilenium",
+"ipBD":"192.168.10.202\\SQLEXPRESS",
+"usuarioBD":"SA",
+"passwordBD":"19640328"}</datosJSON>
+
+
+
+
+M A L
+
+<datosJSON>{"nombreBD":"YitoMilenium",
+"ipBD":"192.168.10.202\\SQLEXPRESS",
+"usuarioBD":"SA",
+"passwordBD":"19640328"}</datosJSON>
+
+
+viernes 07/04/2017
+
+
+SELECT * FROM OPERACION WHERE ID_FIDEICOMISO = 1784 AND NRO_OPERACION = 14955
+SELECT * FROM MOVIMIENTO WHERE NRO_MOVIMIENTO = 19648
+SELECT * FROM MOVIMIENTO_RENGLON WHERE NRO_MOVIMIENTO = 19648
+SELECT * FROM MOVIMIENTO_RENGLON_CARAVANA WHERE NRO_MOVIMIENTO = 19648
+SELECT * FROM BIEN_CARAVANA WHERE CODIGO_CARAVANA IN (SELECT CODIGO_CARAVANA FROM MOVIMIENTO_RENGLON_CARAVANA WHERE NRO_MOVIMIENTO = 19648)
+
+
+DELETE FROM operacion where ID_FIDEICOMISO = 1784 AND NRO_OPERACION = 14955
+DELETE FROM MOVIMIENTO WHERE NRO_MOVIMIENTO = 19648
+delete FROM MOVIMIENTO_RENGLON_CARAVANA WHERE NRO_MOVIMIENTO = 19648
+UPDATE BIEN_CARAVANA SET ESTADO = 'A', FECHA_BAJA = '', MOTIVO_BAJA = '' WHERE CODIGO_CARAVANA IN (SELECT CODIGO_CARAVANA FROM MOVIMIENTO_RENGLON_CARAVANA WHERE NRO_MOVIMIENTO = 19648)
+
+
+
+borro los datos de la operacion 14955 mail de maria jose jueves 16/04
+SELECT * FROM OPERACION WHERE ID_FIDEICOMISO = 1784 AND NRO_OPERACION = 14955
+
+
+tabla operacion
+14955	1784	20170217	P	19648	pedromaciel                   		W639105        	130748759                               	3977
+
+SELECT * FROM MOVIMIENTO WHERE NRO_MOVIMIENTO = 19648
+tabla movimiento
+19648	20170217	122643  	VP	1784	pedromaciel                   
+
+tabla movimiento renglon caravana
+SELECT * FROM MOVIMIENTO_RENGLON_CARAVANA WHERE NRO_MOVIMIENTO = 19648
+
+19648	1	27927015	1784	3	9	3	D	0	1	20111114	2	0
+19648	2	21857803	1784	1	9	7	D	595.460021972656	1	20160713	2	595.460021972656
+19648	3	23452181	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	4	23452194	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	5	23452171	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	6	23452085	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	7	23452069	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	8	25590043	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	9	25590168	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	10	21857248	1784	1	9	7	D	595.460021972656	1	20160713	2	595.460021972656
+19648	11	21857835	1784	1	9	7	D	595.460021972656	1	20160713	2	595.460021972656
+19648	12	23452183	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	13	23452136	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	14	23452100	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	15	23452095	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	16	25590060	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	17	25590082	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	18	21857251	1784	1	9	7	D	595.460021972656	1	20160713	2	595.460021972656
+19648	19	23452140	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	20	23452187	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	21	23452137	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	22	23452109	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	23	23452097	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	24	24411937	1784	4	9	2	D	539.5	1	20160713	2	539.5
+19648	25	25590127	1784	4	9	2	D	539.5	1	20160713	2	539.5
+
+
+
+SELECT * FROM BIEN_CARAVANA WHERE CODIGO_CARAVANA IN (SELECT CODIGO_CARAVANA FROM MOVIMIENTO_RENGLON_CARAVANA WHERE NRO_MOVIMIENTO = 19648)
+tabla bien_caravnaa
+
+1784	21857248	1	I	20170217	Venta Parcial	130748759           
+1784	21857251	1	I	20170217	Venta Parcial	130748759           
+1784	21857803	1	I	20170217	Venta Parcial	130748759           
+1784	21857835	1	I	20170217	Venta Parcial	130748759           
+1784	23452069	4	I	20170217	Venta Parcial	130748759           
+1784	23452085	4	I	20170217	Venta Parcial	130748759           
+1784	23452095	4	I	20170217	Venta Parcial	130748759           
+1784	23452097	4	I	20170217	Venta Parcial	130748759           
+1784	23452100	4	I	20170217	Venta Parcial	130748759           
+1784	23452109	4	I	20170217	Venta Parcial	130748759           
+1784	23452136	4	I	20170217	Venta Parcial	130748759           
+1784	23452137	4	I	20170217	Venta Parcial	130748759           
+1784	23452140	4	I	20170217	Venta Parcial	130748759           
+1784	23452171	4	I	20170217	Venta Parcial	130748759           
+1784	23452181	4	I	20170217	Venta Parcial	130748759           
+1784	23452183	4	I	20170217	Venta Parcial	130748759           
+1784	23452187	4	I	20170217	Venta Parcial	130748759           
+1784	23452194	4	I	20170217	Venta Parcial	130748759           
+1784	24411937	4	I	20170217	Venta Parcial	130748759           
+1784	25590043	4	I	20170217	Venta Parcial	130748759           
+1784	25590060	4	I	20170217	Venta Parcial	130748759           
+1784	25590082	4	I	20170217	Venta Parcial	130748759           
+1784	25590127	4	I	20170217	Venta Parcial	130748759           
+1784	25590168	4	I	20170217	Venta Parcial	130748759           
+1784	27927015	3	I	20170217	Venta Parcial	130748759           
+
+
+
+------------------------------------------------------------
+
+
+vista v_personas_clearing
+
+select a.nro_vale, 
+a.nro_solicitud,
+'Deudor' as rol, 
+b.cod_id, 
+b.nro_identificacion, 
+b.id_persona,
+c.ape1, 
+c.ape2, 
+c.nom1, 
+c.nom2, 
+c.FECHA_NACIMIENTO,
+a.fecha_Genera_Vale, 
+a.capital, 
+a.cuotas,
+min(fecha_vencimiento) as vto_cuota_impaga,
+sum(saldo_rubro_cuota) as saldo_capital_adeudado, 
+(SELECT ROUND( SUM(monto_cuota),2) FROM CUOTAS cc WHERE cc.Nro_Solicitud =a.Nro_Solicitud and Fecha_Cuota_Vale < (select convert(char(8),getdate(),112))) AS importe  ,
+dbo.Dias_Atraso_Vale(a.nro_solicitud,convert(varchar(8),getdate(),112)) as dias_atraso,
+'N' as check_sn,
+(select max(fecha) from v_consulta_pagos_cuota where nro_solicitud = a.nro_solicitud) as ultimo_pago
+from vales a, identificaciones b, personas c, cuotas d, rubros_cuotas e, solicitudes s
+where a.cod_identificacion = b.cod_id
+and a.nro_identificacion = b.nro_identificacion
+and b.id_persona = c.id_persona
+and a.nro_solicitud = d.nro_solicitud
+and d.nro_solicitud = e.nro_solicitud
+and d.nro_cuota = e.nro_cuota
+and a.nro_solicitud = s.nro_solicitud
+and s.seccion = 'DSMBLSDO'
+and d.saldo_cuota_Vale > 1
+and e.rubro = 500 
+and not exists (select nro_solicitud from personas_clearing
+				where personas_clearing.nro_solicitud = a.nro_solicitud
+				and personas_clearing.id_persona = c.id_persona)
+group by a.nro_vale,a.nro_solicitud, b.cod_id, b.nro_identificacion, b.id_persona,
+c.ape1, c.ape2, c.nom1, c.nom2, c.FECHA_NACIMIENTO,a.fecha_Genera_Vale, a.capital, a.cuotas,
+dbo.Dias_Atraso_Vale(a.nro_solicitud,convert(varchar(8),getdate(),112))
+
+union ALL
+
+select a.nro_vale, 
+a.nro_solicitud,
+'Codeudor' as rol, 
+b.cod_id, 
+b.nro_identificacion, 
+b.id_persona,
+c.ape1, 
+c.ape2, 
+c.nom1, 
+c.nom2, 
+c.FECHA_NACIMIENTO,
+a.fecha_Genera_Vale, 
+a.capital, 
+a.cuotas,
+min(fecha_vencimiento) as vto_cuota_impaga,
+sum(saldo_rubro_cuota) as saldo_capital_adeudado, 
+(SELECT ROUND( SUM(monto_cuota),2) FROM CUOTAS WHERE Fecha_Cuota_Vale < (select convert(char(8),getdate(),112))) AS importe  ,
+dbo.Dias_Atraso_Vale(a.nro_solicitud,convert(varchar(8),getdate(),112)) as dias_atraso,
+'N' as check_sn,
+(select max(fecha) from v_consulta_pagos_cuota where nro_solicitud = a.nro_solicitud) as ultimo_pago
+from vales a, 
+     identificaciones b,
+     personas c,
+     cuotas d,
+     rubros_cuotas e,
+     conyuge x,
+     solicitudes s
+where a.nro_solicitud = x.nro_solicitud 
+and x.id_persona = b.id_persona
+and b.id_persona = c.id_persona
+and a.nro_solicitud = d.nro_solicitud
+and d.nro_solicitud = e.nro_solicitud
+and d.nro_cuota = e.nro_cuota
+and a.nro_solicitud = s.nro_solicitud
+and s.seccion = 'DSMBLSDO'
+and d.saldo_cuota_Vale > 1
+and e.rubro = 500
+and not exists (select nro_solicitud from personas_clearing 
+				where personas_clearing.nro_solicitud = x.nro_solicitud
+				and personas_clearing.id_persona = x.id_persona)
+group by a.nro_vale,a.nro_solicitud, b.cod_id, b.nro_identificacion, b.id_persona,
+c.ape1, c.ape2, c.nom1, c.nom2,c.FECHA_NACIMIENTO, a.fecha_Genera_Vale, a.capital, a.cuotas,
+dbo.Dias_Atraso_Vale(a.nro_solicitud,convert(varchar(8),getdate(),112))
+
+
+
+
+
+reporte que pide maria jose
+
+gsafpro
+
+select codigo_caravana,  (select max(f.id_fideicomiso)
+								from fideicomiso f, solicitud s
+								where f.id_fideicomiso = s.id_fideicomiso and
+										tipo_participacion = 1 and s.id_persona = solicitud.id_persona),
+		bien.NRO_BIEN,
+		bien.sub_tipo_bien,
+		sub_tipo_bien.DESCRIPCION,
+		bien_Caravana.ESTADO,
+		pj.COD_ID,
+		pj.NRO_IDENTIFICACION,
+		pj.razon_social
+from bien, BIEN_CARAVANA ,fideicomiso, solicitud, SUB_TIPO_BIEN, persona_juridica pj
+WHERE bien.nro_bien = bien_caravana.nro_bien and
+	bien.id_fideicomiso = bien_caravana.id_fideicomiso and
+	bien.id_fideicomiso = fideicomiso.id_fideicomiso and
+	fideicomiso.id_fideicomiso = solicitud.id_fideicomiso and 
+	tipo_participacion = 1  AND
+	bien.TIPO_BIEN = sub_tipo_bien.id_TIPO_BIEN AND
+	bien.SUB_TIPO_BIEN = SUB_TIPO_BIEN.ID AND 
+	solicitud.ID_PERSONA = pj.ID_EMPRESA and
+	codigo_caravana not in (select codigo_caravana from bien_caravana group by codigo_caravana
+																				having count(*) > 1)
+																				
+	
+
+
+
+
+
+gsaf
+SELECT b.ID_FIDEICOMISO,b.NRO_BIEN,b.cantidad,b.estado,b.SUB_TIPO_BIEN, stp.DESCRIPCION, s.ID_PERSONA, pf.NOM1+' '+ pf.APE1 AS 'nombre/razon_social' ,pf.cod_id, pf.NRO_IDENTIFICACION
+  FROM bien b, FIDEICOMISO f, SOLICITUD s,sub_tipo_Bien stp, PERSONA_FISICA pf
+ WHERE b.ID_FIDEICOMISO = f.ID_FIDEICOMISO
+ AND s.ID_FIDEICOMISO = f.ID_FIDEICOMISO
+ AND s.TIPO_PARTICIPACION = 1
+ AND b.TIPO_bien = stp.ID_TIPO_BIEN
+ AND b.SUB_TIPO_BIEN = stp.ID
+ AND s.ID_PERSONA = pf.ID_PERSONA
+ 
+ UNION ALL
+ 
+ SELECT b.ID_FIDEICOMISO,b.NRO_BIEN,b.cantidad,b.estado,b.SUB_TIPO_BIEN, stp.DESCRIPCION, s.ID_PERSONA, pf.razon_social,pf.cod_id, pf.NRO_IDENTIFICACION
+  FROM bien b, FIDEICOMISO f, SOLICITUD s,sub_tipo_Bien stp, PERSONA_juridica pf
+ WHERE b.ID_FIDEICOMISO = f.ID_FIDEICOMISO
+ AND s.ID_FIDEICOMISO = f.ID_FIDEICOMISO
+ AND s.TIPO_PARTICIPACION = 1
+ AND b.TIPO_bien = stp.ID_TIPO_BIEN
+ AND b.SUB_TIPO_BIEN = stp.ID
+ AND s.ID_PERSONA = pf.ID_empresa
+ ORDER BY id_persona
+ 
+  
+
+SELECT distinct(codigo_caravana) from bien_Caravana
+
+
+select codigo_Caravana ,count(*)from bien_caravana
+group by codigo_Caravana having count(*)>1
+
+select * from bien_caravana where codigo_Caravana = '19840781'
+
+select * from solicitud where id_fideicomiso in(1062,1527,2024,2280) and tipo_participacion = 1
+
+
+
+
+
+
+--------------------------------------------
+
+datos de rut de gsaf y gesaf pro
+
+
+SELECT p.cod_id,p.NRO_IDENTIFICACION,p.RAZON_SOCIAL,f.ID_FIDEICOMISO ,nombre_fondo
+ FROM fideicomiso f, SOLICITUD s,  PERSONA_JURIDICA p
+WHERE f.ID_FIDEICOMISO = s.ID_FIDEICOMISO
+AND s.TIPO_PARTICIPACION = 1
+AND s.ID_PERSONA = p.ID_EMPRESA
+
+UNION ALL
+
+
+SELECT p.cod_id,p.NRO_IDENTIFICACION,p.NOM1+' ' +p.APE1 ,f.ID_FIDEICOMISO ,nombre_fondo
+ FROM fideicomiso f, SOLICITUD s,  PERSONA_fisica p
+WHERE f.ID_FIDEICOMISO = s.ID_FIDEICOMISO
+AND s.TIPO_PARTICIPACION = 1
+AND s.ID_PERSONA = p.ID_persona
+ORDER BY f.ID_FIDEICOMISO
+ 
+
+--------------------------------------------------
+
+
+QUERY INES, PERO TIENEN VARIAS GUIAS POR OPERACION
+
+
+  SELECT MOVIMIENTO.NRO_MOVIMIENTO,   
+         MOVIMIENTO.FECHA,   
+         MOVIMIENTO.HORA,   
+         MOVIMIENTO.CODIGO,   
+         MOVIMIENTO.ID_FIDEICOMISO,   
+         MOVIMIENTO.USUARIO,   
+         FIDEICOMISO.DICOSE ,
+         MOVIMIENTO_RENGLON.NRO_BIEN ,
+      bien.GUIA_INGRESO
+    FROM MOVIMIENTO, FIDEICOMISO, MOVIMIENTO_RENGLON, bien  
+   WHERE ( MOVIMIENTO.ID_FIDEICOMISO = FIDEICOMISO.ID_FIDEICOMISO ) and  
+         ( ( MOVIMIENTO.ID_FIDEICOMISO = 1016 ) )  
+         AND MOVIMIENTO.NRO_MOVIMIENTO = MOVIMIENTO_RENGLON.NRO_MOVIMIENTO
+         AND MOVIMIENTO_RENGLON.NRO_BIEN = bien.NRO_BIEN
+         AND MOVIMIENTO.ID_FIDEICOMISO = bien.ID_FIDEICOMISO
+         AND MOVIMIENTO.CODIGO IN ('IN','AM')
+         
+   
+
+----------------------------------------------------------------------------------------
+
+informe de datos de bienes gSAFPRO
+
+SELECT a.ID_FIDEICOMISO ,c.NOMBRE_FONDO,a.NRO_BIEN,a.SUB_TIPO_BIEN,b.DESCRIPCION,
+a.FECHA_INICIO,a.CANTIDAD,a.ID_BIEN,a.ESTADO,a.FECHA_BAJA,a.MOTIVO_BAJA,a.FECHA_PRECIO,
+a.DICOSE,a.GUIA_INGRESO,a.FECHA_GUIA
+  FROM BIEN a, SUB_TIPO_BIEN b , FIDEICOMISO c
+WHERE a.TIPO_BIEN = b.ID_TIPO_BIEN
+AND a.SUB_TIPO_BIEN = b.ID
+AND a.ID_FIDEICOMISO = c.ID_FIDEICOMISO
+
+
+----------------------------------------------------------------------------------------
+informe de operaciones
+select a operaciones
+SELECT o.*,pj.COD_ID, pj.NRO_IDENTIFICACION ,pj.RAZON_SOCIAL, t.DESCRIPCION
+  FROM OPERACION o, fideicomiso f, PERSONA_JURIDICA pj, TIPO_OPERACION t
+WHERE o.ID_FIDEICOMISO = f.ID_FIDEICOMISO
+AND f.ID_PERSONA = pj.ID_EMPRESA
+AND o.TIPO_OPERACION = t.TIPO_OPERACION
+
+UNION ALL
+
+SELECT o.*,pf.COD_ID, pf.NRO_IDENTIFICACION ,pf.nom1+' '+pf.ape1 , t.DESCRIPCION
+  FROM OPERACION o, fideicomiso f, PERSONA_fisica pf, TIPO_OPERACION t
+WHERE o.ID_FIDEICOMISO = f.ID_FIDEICOMISO
+AND f.ID_PERSONA = pf.id_persona
+AND o.TIPO_OPERACION = t.TIPO_OPERACION
+
+------------------------------------------------------
+
+gsafpro
+
+
+SELECT COUNT(DISTINCT(codigo_Caravana)) FROM BIEN_CARAVANA 
+
+SELECT COUNT(*) FROM BIEN_CARAVANA WHERE CODIGO_CARAVANA  NOT IN(SELECT CODIGO_CARAVANA collate SQL_Latin1_General_CP1_CI_AS FROM gsafmas.dbo.CARAVANA)
+SELECT DISTINCT codigo_caravana FROM BIEN_CARAVANA WHERE CODIGO_CARAVANA  NOT IN(SELECT CODIGO_CARAVANA collate SQL_Latin1_General_CP1_CI_AS FROM gsafmas.dbo.CARAVANA)
+ORDER BY bien_caravana.CODIGO_CARAVANA
+
+--SQL_Latin1_General_CP1_CI_AS+
+
+
+SELECT * FROM BIEN_CARAVANA WHERE CODIGO_CARAVANA = '12607147'
+
+---------------------------------------------------------------------------------------------------
+gsafmas
+
+--select * from persona_fisica
+--
+--DELETE FROM documento_operacion
+--DELETE FROM documento
+--delete from operacion_renglon_caravana
+--delete from operacion_renglon
+--delete from operacion
+--delete from preembarque
+--delete from guia_compra
+--delete from caravana
+--delete from persona_fisica
+--delete from persona_juridica
+--delete from cuenta_corriente
+--delete from fideicomiso
+--update numerador set numerador = 0 where tabla = 'operacion'
+--update numerador set numerador = 0 where tabla = 'fideicomiso'
+--update numerador set numerador = 0 where tabla = 'preembarque'
+--update numerador set numerador = 0 where tabla = 'persona'
+--update numerador set numerador = 0 where tabla = 'cuenta_corriente'
+--update numerador set numerador = 0 where tabla = 'documento'
+--update numerador set numerador = 0 where tabla = 'persona'
+--
+--select * from fideicomiso
+--select * from operacion_renglon_caravana
+--select * from operacion_renglon
+--select * from operacion
+--select * from preembarque
+--select * from guia_compra
+--select * from caravana
+--select * from persona_fisica
+--select * from persona_juridica
+--
+-- -------------------------------------------- CORRER MANUALMENTE -----------------------------------------------------------------------------------------------
+---- arreglo datos preembarques - busco fideicomisos con mas de 1 solicitud participacion 1:
+--select f.id_fideicomiso, count(*)
+--from fideicomiso f, solicitud s
+--where f.id_fideicomiso = s.id_fideicomiso and
+--	tipo_participacion = 1
+--	group by f.id_fideicomiso
+--	having count(*) > 1;
+--	SELECT * FROM SOLICITUD_RESPONSABLE WHERE ID_FIDEICOMISO = 1143
+--	
+--	
+--delete from solicitud_responsable where id_fideicomiso = 1143;
+--delete from solicitud where id_fideicomiso = 1143 and fecha_solicitud = '20160524';
+--delete from solicitud where id_fideicomiso = 789 and fecha_solicitud = '20150706';
+--delete from solicitud where id_fideicomiso = 1494 and nro_solicitud in (2,3);
+--insert into solicitud values ( 1497,1,1,'20160114',1542,'D',6698.69921875,6.90000009536743,12)
+--update bien set solicitud_tomador = 1 where id_fideicomiso = 1497
+--delete from solicitud where id_fideicomiso = 1497 and nro_solicitud in (2,3);
+--
+--insert into GSAFMas.dbo.persona_fisica
+--select id_persona, cod_id, nro_identificacion, id_departamento, id_ciudad,nom1,nom2,ape1,ape2,sexo, fecha_nacimiento,lugar_nacimiento,estado_civil,calle,nro_puerta,sub_puerta,cod_postal,telefono,otro_telefono,celular,email,cuenta_banco,cuenta_moneda
+--from persona_fisica;
+
+SELECT COUNT(DISTINCT(codigo_Caravana)) FROM CARAVANA
+SELECT * FROM fideicomiso--867
+SELECT * FROM PERSONA_juridica--1105
+SELECT * FROM PERSONA_fisica--986
+SELECT * FROM OPERACION--3786
+SELECT * FROM OPERACION_RENGLON_CARAVANA --220248
+SELECT * FROM OPERACION_RENGLON --4906
+SELECT * FROM PREEMBARQUE --3729
+SELECT * FROM numerador
+SELECT * FROM categoria
+SELECT * FROM GUIA_COMPRa
+SELECT CODIGO_CARAVANA, ID_FIDEICOMISO, CAravana.CATEGORIA,
+CATEGORIA.DESCRIPCION,DICOSE_EFIDUS,DICOSE_UBICACION, ESTADO,MONEDA, VALOR_INICIO,FECHA_PRECIO, FECHA_BAJA,GUIA, FECHA_GUIA
+  FROM CAravana, CATEGORIA
+WHERE CARAVANA.CATEGORIA = CATEGORIA.CATEGORIA 
+
+/* excel con fideicomisos*/
+
+
+SELECT f.ID_FIDEICOMISO,f.ID_PERSONA,pj.COD_ID ,pj.NRO_IDENTIFICACION,pj.RAZON_SOCIAL,f.FECHA_INICIO, f.OBSERVACION,
+f.TASA, f.PORC_LINEA,f.USUARIO,f.VIGENCIA,f.SUCURSAL
+  FROM FIDEICOMISO f,PERSONA_juridica pj
+WHERE f.ID_PERSONA = pj.ID_EMPRESA
+
+UNION ALL
+
+SELECT f.ID_FIDEICOMISO,f.ID_PERSONA,pf.cod_id, pf.NRO_IDENTIFICACION,rtrim(pf.NOM1)+' ' +rtrim(pf.ape1)AS RAZON_SOCIAL ,f.FECHA_INICIO, f.OBSERVACION,
+f.TASA, f.PORC_LINEA,f.USUARIO,f.VIGENCIA,f.SUCURSAL
+  FROM FIDEICOMISO f,PERSONA_fisica pf
+WHERE f.ID_PERSONA = pf.ID_PERSONA
+
+/**////
+
+
+
+
+WHERE codigo_caravana = '8531405' 
+SELECT * FROM CAravana WHERE codigo_caravana = '19232177'
+SELECT * FROM CAravana WHERE id_fideicomiso = 2081 AND CODIGO_CARAVANA = '21029094'
+SELECT * FROM CAravana WHERE id_fideicomiso = 2096 AND CODIGO_CARAVANA = '8531405'
+UPDATE caravana SET CATEGORIA = 13 WHERE id_fideicomiso = 2167 AND CODIGO_CARAVANA = '21029094'
+
+SELECT COUNT(DISTINCT(codigo_Caravana)) FROM CARAVANA 
+SELECT * FROM CARAVANA WHERE CODIGO_CARAVANA = '12607147'
